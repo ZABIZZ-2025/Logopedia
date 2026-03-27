@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apprendi Parole Divertendoti! (800 Parole)</title>
+    <!-- Importa Tesseract.js da CDN -->
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+    <style>
+        :root {
+            --primary-color: #29b6f6; /* Azzurro cielo */
+            --secondary-color: #ffca28; /* Giallo sole */
+            --tertiary-color: #ff7043; /* Arancione carota */
+            --success-color: #66bb6a; /* Verde prato */
+            --error-color: #ef5350; /* Rosso fragola */
+            --text-color: #424242; /* Grigio scuro */
+            --bg-light: #f0f4f8; /* Azzurrino chiarissimo */
+            --bg-white: #ffffff;
+            --font-fun: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-fun);
+            margin: 0;
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-bottom: 30px;
+            box-sizing: border-box;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: var(--bg-white);
+            width: 100%;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border-bottom: 5px solid var(--secondary-color);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: clamp(1.8em, 5vw, 2.5em); /* Responsive font size */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        nav {
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        nav button {
+            padding: 12px 25px;
+            font-size: clamp(1em, 3vw, 1.2em);
+            cursor: pointer;
+            border: none;
+            border-radius: 25px; /* Pulsanti più arrotondati */
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            font-family: var(--font-fun);
+            transition: transform 0.2s ease-out, background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        nav button:hover, nav button.active {
+            background-color: #fbc02d; /* Giallo più scuro per hover */
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        nav button.active {
+             background-color: var(--tertiary-color);
+             color: white;
+        }
+
+
+        .module {
+            display: none;
+            background-color: var(--bg-white);
+            padding: clamp(15px, 4vw, 30px);
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            width: 90%;
+            max-width: 750px;
+            text-align: center;
+            border-top: 8px solid var(--primary-color);
+        }
+
+        .module.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .module h2 {
+            color: var(--tertiary-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: clamp(1.5em, 4vw, 2em);
+        }
+
+        .controls-group, .input-group, .feedback-area {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 2px dashed var(--secondary-color);
+            border-radius: 15px;
+            background-color: #fffbf1; /* Sfondo leggermente diverso per i gruppi */
+        }
+        
+        .input-group p { margin-top: 0;}
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        select, input[type="text"], input[type="range"] {
+            padding: 10px 15px;
+            font-size: 1em;
+            border-radius: 10px;
+            border: 2px solid #ccc;
+            margin: 5px 0;
+            font-family: var(--font-fun);
+            width: calc(100% - 34px); /* Considera padding e border */
+            max-width: 300px;
+            box-sizing: border-box;
+        }
+        input[type="range"] { width: 80%; }
+
+
+        button.action-btn, .module button:not(nav button) {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.2s, transform 0.1s;
+            font-family: var(--font-fun);
+        }
+        button.action-btn:hover, .module button:not(nav button):hover {
+            background-color: #0288d1; /* Blu più scuro */
+            transform: scale(1.02);
+        }
+        button:disabled {
+            background-color: #e0e0e0 !important;
+            color: #9e9e9e !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
+
+        #writingCanvas {
+            border: 3px solid var(--tertiary-color);
+            background-color: #fff8e1; /* Crema chiaro per "lavagna" */
+            cursor: crosshair;
+            touch-action: none;
+            border-radius: 10px;
+            max-width: 100%; /* Responsive */
+            box-sizing: border-box;
+        }
+
+        .feedback-container { /* Contenitore per feedback per layout */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 40px; /* Spazio per messaggio */
+        }
+        .feedback-text {
+            font-size: clamp(1.2em, 3.5vw, 1.6em);
+            font-weight: bold;
+        }
+
+        .correct-feedback { color: var(--success-color); }
+        .incorrect-feedback { color: var(--error-color); }
+
+        /* Input/Canvas con sfondo colorato per feedback */
+        input[type="text"].correct, #writingCanvas.correct { background-color: #e8f5e9 !important; border-color: var(--success-color) !important; }
+        input[type="text"].incorrect, #writingCanvas.incorrect { background-color: #ffebee !important; border-color: var(--error-color) !important; }
+        
+        #textToPronounce {
+            font-size: clamp(1.8em, 6vw, 3em);
+            padding: 20px;
+            border: 3px solid var(--primary-color);
+            border-radius: 15px;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e3f2fd; /* Azzurro molto chiaro */
+            margin-bottom: 20px;
+            word-break: break-all;
+        }
+         #textToPronounce.correct { background-color: #e8f5e9 !important; border-color: var(--success-color) !important; }
+         #textToPronounce.incorrect { background-color: #ffebee !important; border-color: var(--error-color) !important; }
+
+        #recognizedPronunciation {
+            font-size: clamp(1.2em, 4vw, 1.8em);
+            padding: 10px;
+            margin-top: 10px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            min-height: 40px;
+            background-color: #fafafa;
+        }
+        #compHandwritingStatus, #pronStatus {
+            font-style: italic;
+            color: #757575;
+            min-height: 20px;
+            margin-top: 10px;
+        }
+
+        /* Fireworks Animation */
+        .fireworks-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 9999;
+        }
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            opacity: 0;
+            animation: explode 0.8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes explode {
+            0% { transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.3); opacity: 1; }
+            100% { transform: translate(var(--tx-end, 0), var(--ty-end, 0)) scale(1.8); opacity: 0; }
+        }
+
+        /* Stili per i font modulo pronuncia */
+        .font-stampatello-maiuscolo { text-transform: uppercase; font-family: Arial, Helvetica, sans-serif; letter-spacing: 1px; }
+        .font-stampatello-minuscolo { text-transform: lowercase; font-family: Arial, Helvetica, sans-serif; }
+        .font-corsivo-maiuscolo { text-transform: uppercase; font-family: var(--font-fun); font-style: italic; }
+        .font-corsivo-minuscolo { text-transform: lowercase; font-family: var(--font-fun); font-style: italic; }
+
+        /* Responsive per canvas */
+        @media (max-width: 600px) {
+            #writingCanvas { width: 100%; height: 150px; } /* Adatta larghezza e altezza fissa */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Apprendi Parole Divertendoti!</h1>
+    </header>
+
+    <nav>
+        <button data-module="comprensione">👂 Ascolta e Scrivi ✍️</button>
+        <button data-module="pronuncia">📖 Leggi e Parla 🗣️</button>
+        <button data-module="impostazioni">⚙️ Impostazioni</button>
+    </nav>
+
+    <!-- Modulo Comprensione -->
+    <div id="comprensione" class="module">
+        <h2>Ascolta e Scrivi!</h2>
+        <div class="controls-group">
+            <label for="compSyllableSelect">Scegli la lunghezza della parola:</label>
+            <select id="compSyllableSelect">
+                <option value="2">2 Sillabe (es. CA-NE)</option>
+                <option value="3">3 Sillabe (es. TA-VO-LO)</option>
+                <option value="4">4 Sillabe (es. PA-TA-TI-NA)</option>
+                <option value="5">5+ Sillabe (es. E-LE-FAN-TE)</option>
+            </select>
+            <button id="compNewWordBtn" class="action-btn">Nuova Parola 🎲</button>
+            <button id="compRepeatWordBtn" class="action-btn">Ascolta Ancora 🔁</button>
+        </div>
+        
+        <div class="input-group">
+            <label for="compKeyboardInput">Scrivi qui con la tastiera:</label>
+            <input type="text" id="compKeyboardInput" placeholder="Scrivi la parola...">
+            <button id="compCheckKeyboardBtn" class="action-btn">Controlla! 👍</button>
+            <div id="compKeyboardFeedback" class="feedback-container"></div>
+        </div>
+
+        <div class="input-group">
+            <p>Oppure disegna la parola qui sotto (meglio in STAMPATELLO):</p>
+            <canvas id="writingCanvas" width="450" height="180"></canvas>
+            <button id="compCheckHandwritingBtn" class="action-btn">Controlla Disegno! 👍</button>
+            <button id="compClearCanvasBtn">Pulisci Lavagna 🧼</button>
+            <div id="compHandwritingFeedback" class="feedback-container"></div>
+            <div id="compHandwritingStatus"></div>
+        </div>
+    </div>
+
+    <!-- Modulo Pronuncia -->
+    <div id="pronuncia" class="module">
+        <h2>Leggi e Parla!</h2>
+        <div class="controls-group">
+            <label for="pronSyllableSelect">Scegli la lunghezza della parola:</label>
+            <select id="pronSyllableSelect">
+                 <option value="2">2 Sillabe</option>
+                 <option value="3">3 Sillabe</option>
+                 <option value="4">4 Sillabe</option>
+                 <option value="5">5+ Sillabe</option>
+            </select>
+            <label for="pronFontSelect">Scegli come deve essere scritta la parola:</label>
+            <select id="pronFontSelect">
+                <option value="font-stampatello-maiuscolo">STAMPATELLO MAIUSCOLO</option>
+                <option value="font-stampatello-minuscolo">stampatello minuscolo</option>
+                <option value="font-corsivo-maiuscolo">Corsivo MAIUSCOLO</option>
+                <option value="font-corsivo-minuscolo">corsivo minuscolo</option>
+            </select>
+            <button id="pronNewWordBtn" class="action-btn">Nuova Parola da Leggere 🎲</button>
+        </div>
+        <div id="textToPronounce">Premi "Nuova Parola da Leggere"</div>
+        
+        <div class="input-group">
+            <button id="pronRecordBtn" class="action-btn">Premi e Parla 🎤</button>
+            <p style="font-size: 0.9em; color: #666;">(La prima volta, il browser chiederà il permesso per il microfono)</p>
+            <button id="pronPlayUserRecordingBtn" disabled title="Funzione non disponibile in questa demo">Ascolta la tua Registrazione 🎧</button>
+            <button id="pronClearUserRecordingBtn" disabled title="Funzione non disponibile in questa demo">Cancella Registrazione 🗑️</button>
+            
+            <p>Parola che hai detto:</p>
+            <div id="recognizedPronunciation">- - -</div>
+            <div id="pronFeedback" class="feedback-container"></div>
+            <div id="pronStatus"></div>
+        </div>
+    </div>
+
+    <!-- Modulo Impostazioni -->
+    <div id="impostazioni" class="module">
+        <h2>Regola le Impostazioni</h2>
+        <div class="controls-group">
+            <label for="speechRateRange">Velocità della voce del gioco (lenta 🐌 <-> veloce 🐆):</label>
+            <input type="range" id="speechRateRange" min="0.3" max="1.8" step="0.1" value="1">
+            <span id="speechRateValue">1.0</span>
+        </div>
+        <div class="controls-group">
+            <label for="voiceSelect">Scegli una voce per il gioco (se disponibili in italiano):</label>
+            <select id="voiceSelect"></select>
+        </div>
+        <p style="font-size:0.9em; color: #757575;">
+            <em>Nota: La "precisione" del riconoscimento dipende da come scrivi o parli,
+            dal tuo microfono e dall'ambiente. Cerca di scrivere e parlare chiaramente!</em>
+        </p>
+    </div>
+
+    <div class="fireworks-container" id="fireworksContainer"></div>
+
+    <script>
+        // --- DATABASE PAROLE (CIRCA 800 PAROLE) ---
+        // Le parole sono in MAIUSCOLO per facilitare il confronto.
+        // La sillabazione è approssimativa per la demo.
+        const wordDatabase = {
+            2: [
+                "acro", "agio", "alba", "alto", "anca", "anno", "arco", "arte", "aspo", "atto", "aula", "auto", "avro", "asse", "aghi", "armi", "alfa", "atri", "alga", "azze",
+                "baci", "bado", "ballo", "banco", "barca", "basco", "beffa", "beige", "beta", "bimbo", "bocca", "bomba", "borsa", "bosco", "bravo", "brina", "brodo", "bronzo", "bruco", "buffo",
+                "cado", "caldo", "calma", "campo", "canto", "carro", "cassa", "casto", "cento", "cervo", "cigno", "cinta", "cisti", "ciurma", "clima", "cloro", "collo", "copia", "corno", "corpo",
+                "dado", "dogma", "danza", "darsi", "delta", "dente", "destro", "dicco", "diga", "diplo", "disco", "dolce", "donne", "dorso", "dossi", "drago", "droga", "ducale", "dunque", "duolo",
+                "ebano", "ecco", "edile", "elmo", "elsa", "empio", "ente", "erba", "ermo", "erta", "esame", "esito", "estro", "etere", "etnia", "euro", "evaso", "evito", "extra", "etico",
+                "fame", "fango", "farne", "farsi", "fatto", "fauno", "feccia", "fermo", "ferro", "fiala", "fibra", "fieno", "filo", "fiume", "flora", "foglio", "folla", "fonte", "forma", "freno",
+                "gallo", "garbo", "gatto", "gelso", "gemma", "gente", "gergo", "ghisa", "giallo", "gioco", "giorno", "gitano", "globo", "gnomo", "gobbo", "goffo", "golfo", "gonna", "gorgo", "grande",
+                "hotel", "hobby", "hard", "home", "harem", "halloween", "horror", "hello", "hydro", "habitat",
+                "iato", "ibis", "icona", "idolo", "idra", "iella", "igloo", "ikebana", "imene", "indaco", "indice", "infido", "infra", "intimo", "iodio", "ipnosi", "iride", "irto", "islam", "istmo",
+                "jazz", "jeep", "jeans", "jet", "jolly", "junior", "judo", "jack", "jelly", "joule",
+                "karma", "kebab", "kendo", "kenya", "kimono", "kiwi", "koala", "ketchup", "kayak", "khmer",
+                "labbra", "ladro", "lago", "lama", "lardo", "larva", "latte", "lauto", "lava", "lento", "lesto", "leva", "libro", "lido", "limbo", "lince", "lista", "litro", "lotta", "luna",
+                "madre", "magma", "magro", "malto", "mamma", "manto", "marmo", "marzo", "massa", "matto", "mega", "mela", "mesto", "metro", "mezzo", "miglio", "mille", "mirto", "misto", "mondo",
+                "nafta", "nano", "nave", "nebbia", "nembo", "nero", "nervo", "nesso", "netto", "neve", "nido", "ninfa", "nitro", "nobile", "nocca", "nonno", "norma", "nosco", "nozze", "nulla",
+                "ocra", "olio", "oltre", "omero", "onere", "onda", "onore", "opaco", "opera", "opimo", "orale", "orbo", "orco", "orda", "orlo", "orma", "orso", "osso", "ovale", "ovile",
+                "padre", "palco", "palma", "palo", "panca", "pane", "panno", "parco", "parte", "parto", "pasta", "patto", "pausa", "peste", "pesto", "petto", "picco", "piega", "pino", "pizzo",
+                "quadro", "qualche", "quanto", "quasi", "quercia", "questo", "quindi", "quinto", "quota", "quorum",
+                "ramo", "rana", "rango", "raro", "ratto", "reale", "regno", "renio", "retro", "retta", "ricco", "ride", "rigo", "rima", "rito", "rocca", "rogo", "ronda", "rosso", "rotta",
+                "sabbia", "sacco", "sadico", "saggio", "sala", "saldo", "salmo", "salto", "sano", "santo", "sarmo", "sasso", "scafo", "scala", "scena", "schivo", "scolo", "scudo", "secco", "seme",
+                "tacca", "taccio", "taci", "tale", "tanto", "tardi", "tasto", "tazza", "tegola", "telo", "tempo", "tendo", "tergo", "terso", "tesa", "tesi", "tesoro", "testo", "tetro", "tifo",
+                "ufo", "uggia", "ugola", "ulivo", "ulna", "ultra", "umido", "uncino", "unghia", "unico", "unto", "uopo", "uovo", "urlo", "urna", "usanza", "uscio", "uso", "utero", "utile",
+                "vado", "vago", "vale", "vallo", "vanga", "vanto", "vario", "vaso", "vasto", "vate", "vedo", "vela", "vello", "velo", "vena", "vento", "verbo", "verga", "verso", "vetta",
+                "wagon", "walzer", "wasabi", "water", "wafer", "web", "wifi", "western", "weekend", "whisky",
+                "xeno", "xenon", "xylem", "xilene", "xanto",
+                "yoga", "yeti", "yacht", "yogurt", "yen",
+                "zanna", "zampa", "zappa", "zelo", "zero", "zeta", "zinco", "zitto", "zolfo", "zucca"
+            ],
+            3: [
+                "abaco", "abilità", "abisso", "abitare", "abolire", "abrogo", "abside", "abusivo", "acacia", "accadere", "accento", "accesso", "accolto", "acerbo", "acetone", "acino", "acume", "adagio", "adeguato", "adempio",
+                "baciare", "badante", "bagaglio", "bagordo", "balcone", "baldoria", "baleno", "ballare", "balzano", "bambino", "bancario", "bandiera", "baobab", "baracca", "baraonda", "baratto", "barbiere", "baritono", "barrato", "barriera",
+                "cabina", "cacciare", "cadenza", "cadmio", "caduta", "caffeine", "caimano", "calcolo", "calmante", "caloria", "cambiare", "camerata", "camicia", "camino", "campagna", "campione", "canaglia", "canapa", "canario", "candela",
+                "dacapo", "dadaista", "dalmata", "dannoso", "davanti", "davvero", "decadere", "decennio", "decidere", "decimale", "deciso", "dedicare", "dedurre", "defecare", "deferire", "defunto", "degente", "delegato", "delicato", "delitto",
+                "ebano", "ebraico", "ebrezza", "eccedere", "eccesso", "eccetera", "eclisse", "eclittica", "economico", "ecosistema", "edificio", "editore", "educato", "effetto", "efficace", "egemonia", "egoismo", "elaborare", "elargire", "eleggere",
+                "fabbrica", "fachiro", "facile", "fagiano", "fagotto", "fallace", "fallire", "falsità", "famoso", "fanale", "fanciullo", "fandonia", "fantasma", "fanteria", "farfalla", "farmacia", "fascino", "fatale", "fattore", "fattura",
+                "gagliardo", "galante", "galassia", "galera", "galleria", "galletto", "gallina", "galoppare", "gambero", "garantire", "garanzia", "garofano", "gasolio", "gassoso", "gastrico", "gavetta", "gazebo", "gazzetta", "gelato", "geloso",
+                "habitat", "handicap", "hardware", "hockey", "holding", "homepage", "hotel", "hamburger", "herpes", "hovercraft",
+                "iceberg", "iconico", "ideale", "identico", "idiota", "idolatra", "idraulico", "idrogeno", "idrometro", "ignaro", "ignobile", "ignorare", "ignoto", "ilare", "illogico", "illuminare", "illudere", "illuso", "illustre", "imbattere",
+                "jacuzzi", "jellato", "jersey", "jogging", "jolly", "jonquil", "joviale", "jukebox", "junior", "juventus",
+                "karate", "kebab", "kefir", "ketchup", "kimono", "kindergarten", "kingston", "kirigami", "kitsch", "kiwi",
+                "laboratorio", "laburno", "lacerto", "laconia", "lacrima", "lacuna", "ladino", "ladrone", "laguna", "lamento", "lampada", "lampione", "lampone", "lanciare", "languido", "lanterna", "lapillo", "lardoso", "laringe", "lasagna",
+                "macabro", "macchina", "maceria", "macigno", "macrò", "madama", "madonna", "maestro", "mafia", "magenta", "maggese", "maggiore", "maglione", "magnete", "magnolia", "magro", "mahonia", "malattia", "maldestro", "malefico",
+                "nacchera", "naftalina", "nascente", "nascita", "nascosto", "nasello", "nastro", "natale", "natante", "nativo", "natura", "naufrago", "nautica", "navale", "navata", "nazione", "neanche", "nebbia", "nebuloso", "necessario",
+                "obbligo", "obliquo", "oblò", "obolo", "obsoleto", "oceano", "occulto", "occupare", "oculato", "oculista", "odissea", "odorare", "offrire", "oggetto", "oleoso", "olfatto", "olifante", "olimpico", "oltraggio", "omaggio",
+                "pacifico", "padella", "padrino", "padrone", "pagano", "pagare", "pagina", "pagliaccio", "pagoda", "paiolo", "palazzo", "palese", "palestra", "pallido", "pallone", "palmento", "palpare", "palude", "pancetta", "pancreas",
+                "quaderno", "quadrato", "quadretto", "quadriga", "quadriglia", "quadro", "qualcosa", "qualcuno", "qualità", "qualsiasi", "quantico", "quantità", "quaranta", "quaresima", "quartiere", "quarto", "quattrino", "quercia", "quesito", "questione",
+                "raccolto", "racconto", "rachide", "radicale", "radice", "radioso", "raduno", "rafano", "raffiche", "raffinare", "ragazzo", "ragione", "ragnetto", "rampante", "rampino", "rancido", "rancura", "randagio", "rapace", "rapida",
+                "sabato", "sabbia", "saccente", "sacchetto", "sacco", "sacrale", "sacrificio", "sadico", "safari", "sagace", "sagacia", "saggiare", "sagoma", "sala", "salame", "salario", "salasso", "salato", "salice", "saliente",
+                "tabacco", "tabella", "tablino", "tabù", "taccuino", "tacere", "tacito", "tagliere", "tagliolo", "talamo", "talento", "talete", "talismano", "tallone", "tamarindo", "tamburo", "tanaceto", "tanfo", "tangente", "tanica",
+                "ubertà", "ubicare", "ubidire", "ubiquità", "ubriaco", "uccello", "ucraino", "udibile", "udienza", "udire", "ufficiale", "ufficio", "ugello", "uggia", "uguale", "ulcera", "ulivo", "ultimare", "ulula", "umano",
+                "vacante", "vacanza", "vaccino", "vacilla", "vacuità", "vagare", "vagone", "valente", "valere", "valido", "vallata", "valletto", "valore", "valuta", "vampata", "vampiro", "vaniglia", "vanità", "vapore", "varcare",
+                "wafer", "walzer", "warrant", "weekend", "welfare", "western", "whisky", "widget", "windsurf", "workshop",
+                "xenia", "xenofobo", "xerocopia", "xilema", "xilofono",
+                "yankee", "yogurt", "yucca", "yuppie", "yuppy",
+                "zaffata", "zaffiro", "zainetto", "zampa", "zampillo", "zampogna", "zanzara", "zappare", "zattera", "zavorra"
+            ],
+            4: [
+                "abilità", "abilitare", "abitacolo", "abitatore", "abitazione", "abituale", "abituare", "abituato", "abitudinario", "abolire", "abolizione", "aborigeno", "abortire", "abrasivo", "abrogare", "accademia", "accademico", "accelerare", "accentuare", "accessibile",
+                "baccanale", "baccelliere", "badilante", "bagnarola", "baionetta", "balaustra", "balconate", "baldacchino", "ballerino", "balsamico", "bancarotta", "bandistero", "baraonda", "baritono", "barometro", "baronetto", "barroccio", "basilisco", "battelliere", "battistero",
+                "cabotaggio", "cacciatore", "cachessia", "cadavere", "caffeina", "caffettiera", "calabrone", "calamaro", "calamita", "calamità", "calcolabile", "calcolatore", "calendario", "caliginoso", "calligrafo", "calorifero", "calunniare", "camaleonte", "cameriere", "camerino",
+                "damerino", "dannazione", "darsena", "datazione", "deambulare", "debellare", "debilitare", "decadente", "decaedro", "decapitare", "decathlon", "decenale", "decimetro", "decidere", "decisione", "decimale", "declarare", "dedicare", "defalcare", "defenestrare",
+                "ebollizione", "ebrietà", "ebullo", "ecuadoregno", "edificare", "edificio", "editoriale", "educativo", "effervescenza", "efficacia", "efficiente", "elaborare", "elargizione", "elasticità", "elementare", "elemosinare", "elicottero", "eliminare", "eloquente", "elucubrare",
+                "fabbisogno", "fabricare", "facoltativo", "facoltoso", "faderale", "fagocitare", "falconiere", "fallimento", "falsificare", "familiarità", "fanfarone", "fantastico", "farabutti", "farfalleggiare", "farinaceo", "farmacista", "fascinazione", "fastigiato", "fatalità", "fattoriale",
+                "galattico", "galleggiante", "galvanizzare", "gamberetto", "garantire", "garanzia", "garibaldino", "gasometro", "generatore", "generazioni", "generosità", "genetica", "genetliaco", "gengivale", "genitore", "genocidio", "genuflesso", "geografia", "geometria", "geopolitica",
+                "hackerare", "happening", "hardware", "hashtag", "hemicrania", "hegelismo", "hindenburg", "hobbysta", "holliday", "holografico",
+                "iatrogeno", "ibrido", "idealista", "idilliaco", "idiomatico", "idiosincrasico", "idiozia", "idolatria", "idrogeno", "idrorepellente", "idrotermale", "ignifugo", "ignoranza", "illegalità", "illegibile", "illegittimo", "illetterato", "illuminare", "illusione", "illustrare",
+                "jazzistico", "jeanseria", "jiujitsu", "jollinesso", "joystick", "jugoslavo", "jumpstyle", "jurassico", "jurepuntare", "juta",
+                "kafkiano", "kamasutra", "kameraderie", "kantiano", "karmelitano", "kashmiriano", "katiuscia", "kendokista", "keynesiano", "kibbutzkim",
+                "laboratorio", "laborioso", "labradorite", "laburismo", "lacerare", "laceratore", "lacrimale", "lacrimevole", "lacrimoso", "ladronaggio", "laghetto", "lagrimoso", "lamentoso", "lapalissiano", "lapidario", "laringeo", "larghezza", "largizione", "larvatura", "latifoglie",
+                "macchinario", "macchinista", "macellare", "machitavelli", "macilento", "madornale", "madreperla", "maestrale", "magazzino", "magistrato", "magnetizzare", "magnificare", "magnolia", "magramente", "mahleriano", "maialetto", "maionese", "malamente", "malaticcio", "maldicenza",
+                "nazionale", "natalità", "naturalista", "naturalità", "naturalistico", "naturalizzare", "naufragare", "navigabile", "navigatore", "navigazione", "nazareno", "nazionalismo", "nazionalità", "nazionalistico", "nebbioso", "nebulosità", "necessario", "necessità", "necrofilo", "necrologi",
+                "obbediente", "obbedienza", "obbligare", "obbligatorio", "obbiettivo", "obesità", "obiettare", "obiettivo", "oblazione", "obliterare", "oblungo", "obnubilare", "obrobrio", "occasionale", "occasione", "occidentale", "occidente", "occipitale", "occlusive", "occultista",
+                "pacatezza", "pacchiano", "pacifismo", "pacificare", "padellata", "padellone", "padroneggiar", "padroneggiare", "paganesimo", "pagamento", "paginazione", "paladino", "palatale", "palatalizzare", "palatino", "palcoscenico", "paleocristiano", "paleologo", "paleontologia", "paleontologico",
+                "quadrangolo", "quadernario", "quadrangolare", "quadrantale", "quadrante", "quadratini", "quadratura", "quadricipite", "quadrifoglio", "quadrilatero", "quadrilioni", "quadrimotore", "quadrireattore", "quadrireme", "quadrisillabo", "quadrivio", "quadrumano", "quadrupede", "qualificare", "qualitativo",
+                "raccontare", "raccontarsi", "raccontino", "racemoso", "rachitismo", "racimolare", "radicamento", "radicalismo", "radicante", "radicare", "radichetta", "radioattivo", "radiofonico", "radiografia", "radiologico", "radiopaco", "radiosità", "radioterapia", "radunare", "raffazzonare",
+                "sabadiglia", "sabatino", "sabbiatura", "sabotaggio", "saccaridi", "saccarifero", "saccarimetro", "saccarosio", "saccheggiano", "sacerdotale", "sacramentale", "sacramento", "sacrario", "sacrestia", "sacrificare", "sacrificio", "sadduceo", "saettante", "saettare", "saettatore",
+                "tabulare", "tacchinella", "tachinaro", "taciturno", "tagliatelle", "tagliatore", "talentuoso", "talismano", "tallonite", "tamarindo", "tambureggiante", "tamburello", "tamburino", "tangenziale", "tantalico", "tapirulan", "tapparella", "tarantella", "tarantola", "tariffario",
+                "ubbidienza", "ubertosissimo", "ubicabile", "ubicazione", "ubriacatura", "uccellatura", "uccelliera", "uditorato", "uditorio", "ufficiale", "ufficioso", "uguaglianza", "ugualitario", "ulcerativo", "ulceroso", "ulteriorità", "ultimativo", "ultimatore", "ultimazione", "ultimogenitura",
+                "vacanziero", "vaccarella", "vaccinabile", "vaccinare", "vaccinazione", "vacillante", "vacillare", "vacuità", "vagabondare", "vagabondo", "vagamente", "vagonetto", "vaiolare", "vaioloso", "valicare", "validità", "valligiano", "valoroso", "valutabile", "valutario",
+                "walhalla", "walkabout", "walkman", "wallaby", "wallaroo", "wallpaper", "wampanoag", "wanderlust", "wannabe", "wargaming",
+                "xenofilia", "xenofobo", "xerofilo", "xilocaina", "xiloestesia",
+                "yachtista", "yahooligano", "yamakasi", "yelokopteri", "yemenita",
+                "zabardone", "zabaione", "zacchero", "zaffatore", "zagaglia", "zampettare", "zampogna", "zarevič", "zazzera", "zazzeruto"
+            ],
+            5: [
+                "abbacinamento", "abbacchiatura", "abbarbagliare", "abbaruffare", "abbreviazione", "abbronzatissimo", "abbrustolimento", "abdicazione", "aberrazione", "abilitazione", "abiogenesi", "abitabilità", "abnegazione", "abominazione", "aboriginalità", "aborritissimo", "abrasivamente", "abrogazione", "accanimento", "accaparramento",
+                "bacchiatura", "bacchettatura", "baccellierato", "bacchettoneria", "bacchidione", "bachicoltore", "baciamano", "bagatellizzare", "bagnarola", "balanopotamo", "balbettamento", "baldacchino", "baleniera", "balenottera", "ballabilissimo", "ballottaggio", "baloginante", "bambagiata", "bambagiata", "bambagione",
+                "cabbalisticamente", "cacciatorpediniere", "cadaverosamente", "caffeografico", "calcolabilità", "caleidoscopico", "caliginoso", "calligrafico", "calorosamente", "calunniabile", "camaleonticamente", "camaleontico", "camerieristico", "camminatore", "camomilliera", "campanellinare", "campanilismo", "campioncino", "cannibalismo", "canonizzazione",
+                "dabbenaggine", "dafnefillacee", "dagherrotipia", "damigellina", "dannabilità", "dappocaggine", "dapprincipio", "dardanellico", "dattiloscritto", "debilitazione", "decapitazione", "decifrazione", "decimiliardale", "decomposizione", "decorativamente", "decolorazione", "dediritizzatore", "deduttivamente", "defenestrazione", "degenerazione",
+                "ebdomadario", "ebetitudine", "ebriosamente", "elefantiaco", "elementarietà", "elettrificazione", "elettroluminescenza", "elettromagnetico", "eliminazione", "eloquentissimo", "emancipazione", "empatizzare", "entomologia", "entusiasmare", "equanimemente", "equinoziale", "equipollente", "ergonomicamente", "ermeneutico", "erogazione",
+                "facoltativamente", "falsicabilità", "fantacalcio", "farmacologico", "farraginosità", "fascinazione", "faticabilissimo", "favoreggiamento", "fecondabilità", "fedelissimo", "fenomenologicamente", "feracissimo", "ferriferazione", "festeggiamento", "festosamente", "fiancheggiamento", "fiammeggiamento", "fiammeggiante", "filologicamente", "filosofeggiare",
+                "galleggiabilità", "galvanizzazione", "gasificazione", "gelatinizzare", "generalissimo", "generalizzabile", "generosamente", "genitorialità", "geologicamente", "geometricamente", "geopoliticamente", "gerarchicamente", "germogliamento", "gesticolare", "ghiottoneria", "giallognoletto", "giganteggiamento", "ginnasticamente", "giocherellare", "giocosamente",
+                "harmonicamente", "hegalianeggiante", "homeopaticamente", "hostilizzazione", "humidificatore", "humanizzazione", "hialinizzazione", "hackeraggio", "hepatologicamente", "hereditarietà",
+                "idealisticamente", "ideologizzabile", "idiosincrasia", "idiotizzazione", "idraulicamente", "igienizzazione", "illuminazione", "illogicamente", "illustrazione", "imbacuccamento", "imbaldanzimento", "imbarcazione", "imbellettatura", "imbevimento", "imbiancatura", "imbonimento", "imbrogliatissimo", "imburratore", "immagazzinamento", "immaginabile",
+                "jindaishinpo", "jesuiticamente", "jocundamente", "joculatorio", "jumbojetistico", "judaizzamento", "jazzisticamente", "japponeggiante", "jugoslavizzare", "junghianismo",
+                "kafkianamente", "kaleidoscopicamente", "kamikazzeggiare", "kamasutriano", "karaokeggiare", "karateisticamente", "katakanaizzato", "kennedyano", "keynesianamente", "kilometraggio",
+                "laboratoristico", "lacerabilità", "lacrimevolmente", "laicizzazione", "lambiccamento", "lamentevolmente", "lanterneggiamento", "lapidificazione", "laringectomia", "larmoyante", "lateralizzazione", "latinizzazione", "laudabilmente", "lavabilità", "legittimazione", "leguminaceo", "liberalizzazione", "librettistico", "limitabilità", "limitatamente",
+                "macchinazione", "macchinistico", "macedonicamente", "macerabilità", "machiavellisticamente", "magistralmente", "magnificazione", "maleducazione", "malinconicamente", "malintenzionatamente", "manomissione", "manufatto", "maravigliosamente", "maravigliosissimo", "marginale", "marionettistico", "matematicamente", "materializzazione", "maternizzazione", "matrimoniale",
+                "navigabilità", "navigazione", "nazionalismo", "necessariamente", "necrofobico", "nefandamente", "negligentemente", "negoziatrice", "negoziazione", "neopentecostalismo", "neurologicamente", "neutralizzazione", "nibelungicamente", "nichilismo", "nicotinizzazione", "nietzschianamente", "nientificazione", "nietzschiano", "nitrocellulosico", "nobilissimamente",
+                "obesogenico", "obiettivazione", "obliquamente", "obnubilazione", "occultamento", "occultisticamente", "oculatamente", "odontostomatologia", "offendibilissimo", "oleografico", "oligarchizzazione", "olograficamente", "omeopaticamente", "omeopatico", "omologazione", "ontologicamente", "operativamente", "operosamente", "opificiabilità", "opportunamente",
+                "pacificazione", "padroneggiabile", "paganeggiamento", "paleocristiano", "paleograficamente", "paleontologico", "paleopatologia", "palliativo", "palpeggiamento", "pancreaticopatico", "panettoneria", "panificazione", "panoramicamente", "pantograficamente", "paolottismo", "papabile", "papaveraceo", "parabancaria", "paradigmaticamente", "paradisiaco",
+                "quadrangolarità", "quadrangolazione", "quadrellatura", "quadricolore", "quadriennale", "quadrifoglio", "quadrifonicamente", "quadrilaterale", "quadrilaterato", "quadrilaterazione", "quadrimestrale", "quadrimensile", "quadripartito", "quadrireattore", "quadrisettoriale", "quadrisillabico", "quadrisono", "qualificatamente", "qualitativamente", "quantificazione",
+                "raccomandazione", "raccontabilità", "racimolamento", "radicalizzazione", "radicalizzatore", "radiolocalizzazione", "radionavigazione", "radiotelefonico", "raffazzonamento", "ragionevole", "ragionevolezza", "rallegramento", "ramificazione", "rammemorare", "randomizzazione", "rapsodiabile", "rapsodicità", "rarificazione", "raschiettamento", "rateizzabile",
+                "sabatonizzare", "sacramentalmente", "sacramentalizzare", "sacrilegamente", "sacrificabilità", "sacrificabilmente", "sacrificatore", "sacrilegamente", "sacrilegioso", "salutevolmente",
+                "tacchineggiante", "tachimetrico", "tagliuzzamento", "talamoencefalico", "tambureggiante", "tardivamente", "teatralizzazione", "tediosaggine", "tegumentazione", "telecomanderò", "telematizzazione", "teleologicamente", "telepaticamente", "teleradiografia", "temperamentale",
+                "ubbidientemente", "ubicazione", "ubiquitariamente", "ubiquità", "uccellagione", "udibilità", "udometrico", "ufficialità", "ufficiosamente", "uguagliamento", "ulcerazione", "ulteriormente", "ultramicroscopico", "ultravioletto", "umanamente", "umanitario", "umilissimamente", "umiliazione", "unanimemente", "unificazione",
+                "vagabondaggio", "vagolamento", "valetudinario", "validazione", "valorizzazione", "valutazione", "vanagloriare", "vaniloquio", "vaporizzazione", "variabilità", "variazione", "vascolarizzazione", "vasodilatazione", "vegetariano", "vellicare", "vellutazione", "velocizzare", "venerazione", "ventilazione", "verbalizzazione",
+                "walchirichico", "walkie-talkie", "waltzeristica", "washingtoniano", "wellingtonia", "wendersiano", "westernizzazione", "whatsappabile", "whiskissimo", "wiccanoide",
+                "xenofobicamente", "xenoglossia", "xerografico", "xilografico", "xilofonico",
+                "yahtzee", "yemenizzazione", "yerbamateizzazione", "yoghurtificazione", "yuppizzazione",
+                "zabaglionetico", "zaffardoso", "zapateado", "zappettatura", "zarathustriano", "zerbinatura", "zigrinatura", "zingarescamente", "zooantropologia", "zoologicamente"
+            ],
+            5: [
+                "abbacinamento", "abbacchiatura", "abbarbagliare", "abbaruffare", "abbreviazione", "abbronzatissimo", "abbrustolimento", "abdicazione", "aberrazione", "abilitazione", "abiogenesi", "abitabilità", "abnegazione", "abominazione", "aboriginalità", "aborritissimo", "abrasivamente", "abrogazione", "accanimento", "accaparramento",
+                "bacchiatura", "bacchettatura", "baccellierato", "bacchettoneria", "bacchidione", "bachicoltore", "baciamano", "bagatellizzare", "bagnarola", "balanopotamo", "balbettamento", "baldacchino", "baleniera", "balenottera", "ballabilissimo", "ballottaggio", "baloginante", "bambagiata", "bambagiata", "bambagione",
+                "cabbalisticamente", "cacciatorpediniere", "cadaverosamente", "caffeografico", "calcolabilità", "caleidoscopico", "caliginoso", "calligrafico", "calorosamente", "calunniabile", "camaleonticamente", "camaleontico", "camerieristico", "camminatore", "camomilliera", "campanellinare", "campanilismo", "campioncino", "cannibalismo", "canonizzazione",
+                "dabbenaggine", "dafnefillacee", "dagherrotipia", "damigellina", "dannabilità", "dappocaggine", "dapprincipio", "dardanellico", "dattiloscritto", "debilitazione", "decapitazione", "decifrazione", "decimiliardale", "decomposizione", "decorativamente", "decolorazione", "dediritizzatore", "deduttivamente", "defenestrazione", "degenerazione",
+                "ebdomadario", "ebetitudine", "ebriosamente", "elefantiaco", "elementarietà", "elettrificazione", "elettroluminescenza", "elettromagnetico", "eliminazione", "eloquentissimo", "emancipazione", "empatizzare", "entomologia", "entusiasmare", "equanimemente", "equinoziale", "equipollente", "ergonomicamente", "ermeneutico", "erogazione",
+                "facoltativamente", "falsicabilità", "fantacalcio", "farmacologico", "farraginosità", "fascinazione", "faticabilissimo", "favoreggiamento", "fecondabilità", "fedelissimo", "fenomenologicamente", "feracissimo", "ferriferazione", "festeggiamento", "festosamente", "fiancheggiamento", "fiammeggiamento", "fiammeggiante", "filologicamente", "filosofeggiare",
+                "galleggiabilità", "galvanizzazione", "gasificazione", "gelatinizzare", "generalissimo", "generalizzabile", "generosamente", "genitorialità", "geologicamente", "geometricamente", "geopoliticamente", "gerarchicamente", "germogliamento", "gesticolare", "ghiottoneria", "giallognoletto", "giganteggiamento", "ginnasticamente", "giocherellare", "giocosamente",
+                "harmonicamente", "hegalianeggiante", "homeopaticamente", "hostilizzazione", "humidificatore", "humanizzazione", "hialinizzazione", "hackeraggio", "hepatologicamente", "hereditarietà",
+                "idealisticamente", "ideologizzabile", "idiosincrasia", "idiotizzazione", "idraulicamente", "igienizzazione", "illuminazione", "illogicamente", "illustrazione", "imbacuccamento", "imbaldanzimento", "imbarcazione", "imbellettatura", "imbevimento", "imbiancatura", "imbonimento", "imbrogliatissimo", "imburratore", "immagazzinamento", "immaginabile",
+                "jindaishinpo", "jesuiticamente", "jocundamente", "joculatorio", "jumbojetistico", "judaizzamento", "jazzisticamente", "japponeggiante", "jugoslavizzare", "junghianismo",
+                "kafkianamente", "kaleidoscopicamente", "kamikazzeggiare", "kamasutriano", "karaokeggiare", "karateisticamente", "katakanaizzato", "kennedyano", "keynesianamente", "kilometraggio",
+                "laboratoristico", "lacerabilità", "lacrimevolmente", "laicizzazione", "lambiccamento", "lamentevolmente", "lanterneggiamento", "lapidificazione", "laringectomia", "larmoyante", "lateralizzazione", "latinizzazione", "laudabilmente", "lavabilità", "legittimazione", "leguminaceo", "liberalizzazione", "librettistico", "limitabilità", "limitatamente",
+                "macchinazione", "macchinistico", "macedonicamente", "macerabilità", "machiavellisticamente", "magistralmente", "magnificazione", "maleducazione", "malinconicamente", "malintenzionatamente", "manomissione", "manufatto", "maravigliosamente", "maravigliosissimo", "marginale", "marionettistico", "matematicamente", "materializzazione", "maternizzazione", "matrimoniale",
+                "navigabilità", "navigazione", "nazionalismo", "necessariamente", "necrofobico", "nefandamente", "negligentemente", "negoziatrice", "negoziazione", "neopentecostalismo", "neurologicamente", "neutralizzazione", "nibelungicamente", "nichilismo", "nicotinizzazione", "nietzschianamente", "nientificazione", "nietzschiano", "nitrocellulosico", "nobilissimamente",
+                "obesogenico", "obiettivazione", "obliquamente", "obnubilazione", "occultamento", "occultisticamente", "oculatamente", "odontostomatologia", "offendibilissimo", "oleografico", "oligarchizzazione", "olograficamente", "omeopaticamente", "omeopatico", "omologazione", "ontologicamente", "operativamente", "operosamente", "opificiabilità", "opportunamente",
+                "pacificazione", "padroneggiabile", "paganeggiamento", "paleocristiano", "paleograficamente", "paleontologico", "paleopatologia", "palliativo", "palpeggiamento", "pancreaticopatico", "panettoneria", "panificazione", "panoramicamente", "pantograficamente", "paolottismo", "papabile", "papaveraceo", "parabancaria", "paradigmaticamente", "paradisiaco",
+                "quadrangolarità", "quadrangolazione", "quadrellatura", "quadricolore", "quadriennale", "quadrifoglio", "quadrifonicamente", "quadrilaterale", "quadrilaterato", "quadrilaterazione", "quadrimestrale", "quadrimensile", "quadripartito", "quadrireattore", "quadrisettoriale", "quadrisillabico", "quadrisono", "qualificatamente", "qualitativamente", "quantificazione",
+                "raccomandazione", "raccontabilità", "racimolamento", "radicalizzazione", "radicalizzatore", "radiolocalizzazione", "radionavigazione", "radiotelefonico", "raffazzonamento", "ragionevole", "ragionevolezza", "rallegramento", "ramificazione", "rammemorare", "randomizzazione", "rapsodiabile", "rapsodicità", "rarificazione", "raschiettamento", "rateizzabile",
+                "sabatonizzare", "sacramentalmente", "sacramentalizzare", "sacrilegamente", "sacrificabilità", "sacrificabilmente", "sacrificatore", "sacrilegamente", "sacrilegioso", "salutevolmente",
+                "tacchineggiante", "tachimetrico", "tagliuzzamento", "talamoencefalico", "tambureggiante", "tardivamente", "teatralizzazione", "tediosaggine", "tegumentazione", "telecomanderò", "telematizzazione", "teleologicamente", "telepaticamente", "teleradiografia", "temperamentale",
+                "ubbidientemente", "ubicazione", "ubiquitariamente", "ubiquità", "uccellagione", "udibilità", "udometrico", "ufficialità", "ufficiosamente", "uguagliamento", "ulcerazione", "ulteriormente", "ultramicroscopico", "ultravioletto", "umanamente", "umanitario", "umilissimamente", "umiliazione", "unanimemente", "unificazione",
+                "vagabondaggio", "vagolamento", "valetudinario", "validazione", "valorizzazione", "valutazione", "vanagloriare", "vaniloquio", "vaporizzazione", "variabilità", "variazione", "vascolarizzazione", "vasodilatazione", "vegetariano", "vellicare", "vellutazione", "velocizzare", "venerazione", "ventilazione", "verbalizzazione",
+                "walchirichico", "walkie-talkie", "waltzeristica", "washingtoniano", "wellingtonia", "wendersiano", "westernizzazione", "whatsappabile", "whiskissimo", "wiccanoide",
+                "xenofobicamente", "xenoglossia", "xerografico", "xilografico", "xilofonico",
+                "yahtzee", "yemenizzazione", "yerbamateizzazione", "yoghurtificazione", "yuppizzazione",
+                "zabaglionetico", "zaffardoso", "zapateado", "zappettatura", "zarathustriano", "zerbinatura", "zigrinatura", "zingarescamente", "zooantropologia", "zoologicamente"
+            ]
+        };
+
+        // --- VARIABILI GLOBALI ---
+        let currentCompWord = '';
+        let currentPronWord = '';
+        let speechRate = 1;
+        let selectedSpeechSynthesisVoice = null;
+        let tesseractScheduler = null; 
+
+        // Elementi DOM
+        const modules = document.querySelectorAll('.module');
+        const navButtons = document.querySelectorAll('nav button');
+
+        // Comprensione
+        const compSyllableSelect = document.getElementById('compSyllableSelect');
+        const compNewWordBtn = document.getElementById('compNewWordBtn');
+        const compRepeatWordBtn = document.getElementById('compRepeatWordBtn');
+        const compKeyboardInput = document.getElementById('compKeyboardInput');
+        const compCheckKeyboardBtn = document.getElementById('compCheckKeyboardBtn');
+        const compKeyboardFeedback = document.getElementById('compKeyboardFeedback');
+        const writingCanvas = document.getElementById('writingCanvas');
+        const compCheckHandwritingBtn = document.getElementById('compCheckHandwritingBtn');
+        const compClearCanvasBtn = document.getElementById('compClearCanvasBtn');
+        const compHandwritingFeedback = document.getElementById('compHandwritingFeedback');
+        const compHandwritingStatus = document.getElementById('compHandwritingStatus');
+        const ctx = writingCanvas.getContext('2d');
+
+        // Pronuncia
+        const pronSyllableSelect = document.getElementById('pronSyllableSelect');
+        const pronFontSelect = document.getElementById('pronFontSelect');
+        const pronNewWordBtn = document.getElementById('pronNewWordBtn');
+        const textToPronounceElem = document.getElementById('textToPronounce');
+        const pronRecordBtn = document.getElementById('pronRecordBtn');
+        const recognizedPronunciationElem = document.getElementById('recognizedPronunciation');
+        const pronFeedback = document.getElementById('pronFeedback');
+        const pronStatus = document.getElementById('pronStatus');
+        // I pulsanti per riprodurre/cancellare registrazione utente sono disabilitati
+        // const pronPlayUserRecordingBtn = document.getElementById('pronPlayUserRecordingBtn');
+        // const pronClearUserRecordingBtn = document.getElementById('pronClearUserRecordingBtn');
+
+        // Impostazioni
+        const speechRateRange = document.getElementById('speechRateRange');
+        const speechRateValue = document.getElementById('speechRateValue');
+        const voiceSelect = document.getElementById('voiceSelect');
+        
+        const fireworksContainer = document.getElementById('fireworksContainer');
+
+        // --- INIZIALIZZAZIONE TESSERACT SCHEDULER ---
+        async function initializeTesseract() {
+            try {
+                compHandwritingStatus.textContent = `Caricamento Tesseract...`;
+                tesseractScheduler = Tesseract.createScheduler();
+                if (!tesseractScheduler) {
+                    console.error("Creazione Tesseract Scheduler fallita.");
+                    compHandwritingStatus.textContent = "Errore Tesseract Scheduler.";
+                    return;
+                }
+                const worker = await Tesseract.createWorker('ita', 1, {
+                    logger: m => { 
+                        if (m.status === 'loading language model' || m.status === 'initializing tesseract') {
+                             compHandwritingStatus.textContent = `Tesseract: ${m.status} ${Math.round(m.progress * 100)}%`;
+                        } else if (m.status === 'recognizing text') {
+                             compHandwritingStatus.textContent = `Riconoscimento: ${Math.round(m.progress * 100)}%`;
+                        }
+                        // console.log("Tesseract Logger:", m);
+                    },
+                });
+                 if (!worker) {
+                    console.error("Creazione Tesseract Worker fallita.");
+                    compHandwritingStatus.textContent = "Errore Tesseract Worker.";
+                    tesseractScheduler.terminate(); // Pulisce lo scheduler se il worker fallisce
+                    tesseractScheduler = null;
+                    return;
+                }
+                await tesseractScheduler.addWorker(worker);
+                compHandwritingStatus.textContent = 'Pronto per disegnare!';
+            } catch (error) {
+                console.error("Errore inizializzazione Tesseract:", error);
+                compHandwritingStatus.textContent = "Errore caricamento Tesseract. Ricarica.";
+                if (tesseractScheduler) {
+                    tesseractScheduler.terminate();
+                    tesseractScheduler = null;
+                }
+            }
+        }
+        initializeTesseract();
+
+
+        // --- FUNZIONI HELPER ---
+        function getRandomWord(syllables) {
+            const wordList = wordDatabase[syllables];
+            if (!wordList || wordList.length === 0) {
+                console.error(`Nessuna parola per la categoria di sillabe: ${syllables}`);
+                return "ERRORE"; // Fallback
+            }
+            return wordList[Math.floor(Math.random() * wordList.length)];
+        }
+
+        function speakWord(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); 
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'it-IT';
+                utterance.rate = speechRate;
+                if (selectedSpeechSynthesisVoice) {
+                    utterance.voice = selectedSpeechSynthesisVoice;
+                }
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Il tuo browser non supporta la sintesi vocale integrata.");
+            }
+        }
+        
+        function normalizeText(text) {
+            if (typeof text !== 'string') return '';
+            return text.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
+        }
+
+        function displayFeedback(feedbackElement, inputElementOrCanvas, isCorrect, messageText) {
+            feedbackElement.innerHTML = '';
+            const textSpan = document.createElement('span');
+            textSpan.textContent = messageText;
+            textSpan.classList.add('feedback-text');
+
+            const originalBgColor = inputElementOrCanvas ? (inputElementOrCanvas.id === 'writingCanvas' ? '#fff8e1' : (inputElementOrCanvas.id === 'textToPronounce' ? '#e3f2fd' : 'var(--bg-white)')) : null;
+            
+            if (isCorrect) {
+                textSpan.classList.add('correct-feedback');
+                if (inputElementOrCanvas) {
+                    inputElementOrCanvas.classList.remove('incorrect');
+                    inputElementOrCanvas.classList.add('correct');
+                }
+                triggerFireworks();
+            } else {
+                textSpan.classList.add('incorrect-feedback');
+                if (inputElementOrCanvas) {
+                    inputElementOrCanvas.classList.remove('correct');
+                    inputElementOrCanvas.classList.add('incorrect');
+                }
+            }
+            feedbackElement.appendChild(textSpan);
+
+            if (inputElementOrCanvas) {
+                setTimeout(() => {
+                    inputElementOrCanvas.classList.remove('correct', 'incorrect');
+                     if (originalBgColor) inputElementOrCanvas.style.backgroundColor = originalBgColor;
+                }, 2500);
+            }
+        }
+        
+        // --- LOGICA NAVIGAZIONE MODULI ---
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetModuleId = button.dataset.module;
+                modules.forEach(module => module.classList.toggle('active', module.id === targetModuleId));
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                if (targetModuleId === 'comprensione') initComprensioneModule();
+                else if (targetModuleId === 'pronuncia') initPronunciaModule();
+            });
+        });
+
+        // --- MODULO COMPRENSIONE ---
+        let isDrawing = false; let lastX = 0; let lastY = 0;
+
+        function initComprensioneModule() {
+            clearCanvas();
+            compKeyboardInput.value = '';
+            compKeyboardFeedback.innerHTML = '';
+            compHandwritingFeedback.innerHTML = '';
+            compKeyboardInput.className = ''; 
+            writingCanvas.className = ''; 
+            if (tesseractScheduler) compHandwritingStatus.textContent = 'Pronto per disegnare!';
+            else compHandwritingStatus.textContent = 'Inizializzazione Tesseract... attendere.';
+            generateNewCompWord();
+        }
+        
+        function generateNewCompWord() {
+            currentCompWord = getRandomWord(compSyllableSelect.value);
+            speakWord(currentCompWord);
+            compKeyboardInput.value = '';
+            compKeyboardInput.className = '';
+            compKeyboardFeedback.innerHTML = '';
+            clearCanvas(); 
+            writingCanvas.className = '';
+            compHandwritingFeedback.innerHTML = '';
+            if (tesseractScheduler) compHandwritingStatus.textContent = 'Nuova parola! Disegna o scrivi.';
+        }
+
+        compNewWordBtn.addEventListener('click', generateNewCompWord);
+        compRepeatWordBtn.addEventListener('click', () => {
+            if (currentCompWord) speakWord(currentCompWord);
+            else compHandwritingStatus.textContent = "Nessuna parola da ripetere.";
+        });
+
+        compCheckKeyboardBtn.addEventListener('click', () => {
+            if (!currentCompWord) { 
+                compKeyboardFeedback.innerHTML = '<span class="feedback-text incorrect-feedback">Genera prima una parola!</span>'; 
+                return; 
+            }
+            const userAnswer = normalizeText(compKeyboardInput.value);
+            const correctAnswer = normalizeText(currentCompWord);
+            const isCorrect = userAnswer === correctAnswer;
+            displayFeedback(compKeyboardFeedback, compKeyboardInput, isCorrect, isCorrect ? "BRAVISSIMO!!! 🎉" : "NON TI PREOCCUPARE, RIPROVA 💪");
+        });
+        
+        function getCanvasPos(canvasDom, event) {
+            const rect = canvasDom.getBoundingClientRect();
+            const scaleX = canvasDom.width / rect.width;
+            const scaleY = canvasDom.height / rect.height;
+            const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+            const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        }
+
+        function startDrawing(e) { e.preventDefault(); isDrawing = true; const pos = getCanvasPos(writingCanvas, e); [lastX, lastY] = [pos.x, pos.y]; }
+        function draw(e) {
+            e.preventDefault(); if (!isDrawing) return;
+            const pos = getCanvasPos(writingCanvas, e);
+            ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(pos.x, pos.y);
+            ctx.strokeStyle = '#333'; ctx.lineWidth = Math.max(2, writingCanvas.width / 150); 
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+            [lastX, lastY] = [pos.x, pos.y];
+        }
+        function stopDrawing() { if (isDrawing) isDrawing = false; }
+        
+        writingCanvas.addEventListener('mousedown', startDrawing);
+        writingCanvas.addEventListener('mousemove', draw);
+        writingCanvas.addEventListener('mouseup', stopDrawing);
+        writingCanvas.addEventListener('mouseout', stopDrawing);
+        writingCanvas.addEventListener('touchstart', startDrawing, { passive: false });
+        writingCanvas.addEventListener('touchmove', draw, { passive: false });
+        writingCanvas.addEventListener('touchend', stopDrawing);
+        
+        function clearCanvas() {
+            ctx.clearRect(0, 0, writingCanvas.width, writingCanvas.height);
+            writingCanvas.className = ''; 
+            writingCanvas.style.backgroundColor = '#fff8e1'; // Ripristina colore originale
+            if (tesseractScheduler) compHandwritingStatus.textContent = 'Lavagna pulita!';
+        }
+        compClearCanvasBtn.addEventListener('click', clearCanvas);
+
+        compCheckHandwritingBtn.addEventListener('click', async () => {
+            if (!currentCompWord) { compHandwritingStatus.textContent = 'Prima genera una parola!'; return; }
+            if (!tesseractScheduler) { compHandwritingStatus.textContent = 'Tesseract non è pronto. Attendi o ricarica.'; return; }
+
+            compHandwritingStatus.textContent = 'Riconoscimento scrittura in corso... 🧠';
+            compCheckHandwritingBtn.disabled = true;
+            compClearCanvasBtn.disabled = true;
+
+            try {
+                const { data: { text } } = await tesseractScheduler.addJob('recognize', writingCanvas);
+                const userAnswer = normalizeText(text);
+                const correctAnswer = normalizeText(currentCompWord);
+                const isCorrect = userAnswer === correctAnswer;
+                displayFeedback(compHandwritingFeedback, writingCanvas, isCorrect, isCorrect ? "OTTIMO DISEGNO! BRAVO! 🎉" : "NON PROPRIO... RIPROVA A SCRIVERE 💪");
+                compHandwritingStatus.textContent = `Tesseract ha letto: "${userAnswer || "Niente"}" (Parola corretta: ${correctAnswer})`;
+            } catch (error) {
+                console.error("Errore Tesseract durante riconoscimento:", error);
+                compHandwritingStatus.textContent = 'Ops! Errore nel riconoscere il disegno.';
+                displayFeedback(compHandwritingFeedback, writingCanvas, false, "ERRORE NEL RICONOSCIMENTO 😵");
+            } finally {
+                compCheckHandwritingBtn.disabled = false;
+                compClearCanvasBtn.disabled = false;
+            }
+        });
+
+        // --- MODULO PRONUNCIA ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        let isAsrRecording = false; // Rinominato per evitare conflitti
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'it-IT';
+            recognition.continuous = false;
+            recognition.interimResults = false; 
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                isAsrRecording = true;
+                pronStatus.textContent = 'Sto ascoltando... Parla ora! 📢';
+                pronRecordBtn.textContent = 'Ascoltando...';
+                pronRecordBtn.style.backgroundColor = 'var(--error-color)';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                recognizedPronunciationElem.textContent = transcript;
+                const userAnswer = normalizeText(transcript);
+                const correctAnswer = normalizeText(currentPronWord);
+                const isCorrect = userAnswer === correctAnswer;
+                displayFeedback(pronFeedback, textToPronounceElem, isCorrect, isCorrect ? "PRONUNCIA PERFETTA! BRAVISSIMO! 🎉" : "QUASI! RIPROVA A PRONUNCIARE MEGLIO 💪");
+                pronStatus.textContent = `Hai detto: "${transcript}".`;
+            };
+            
+            recognition.onspeechend = () => {
+                recognition.stop(); 
+                pronStatus.textContent = 'Ho sentito! Sto pensando... 🤔';
+            };
+
+            recognition.onend = () => {
+                isAsrRecording = false;
+                pronRecordBtn.textContent = 'Premi e Parla 🎤';
+                pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
+                if (recognizedPronunciationElem.textContent === '- - -' && !pronFeedback.textContent.includes("ERRORE")) {
+                    pronStatus.textContent = 'Non ho capito bene. Riprova a parlare!';
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Errore SpeechRecognition:", event.error, event.message);
+                let userMessage = `Ops! Errore: ${event.error}. `;
+                if (event.error === 'no-speech') userMessage += "Non ho sentito nulla. Parla più forte!";
+                else if (event.error === 'audio-capture') userMessage += "Problemi col microfono.";
+                else if (event.error === 'not-allowed') userMessage += "Devi darmi il permesso di usare il microfono! 🙁";
+                else userMessage += "Qualcosa è andato storto.";
+                
+                pronStatus.textContent = userMessage;
+                recognizedPronunciationElem.textContent = '- ERRORE -';
+                displayFeedback(pronFeedback, textToPronounceElem, false, "ERRORE VOCALE 😵");
+                 isAsrRecording = false; // Assicura reset stato
+                pronRecordBtn.textContent = 'Premi e Parla 🎤';
+                pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
+            };
+        } else {
+            pronStatus.textContent = 'Il tuo browser non supporta il riconoscimento vocale.';
+            if(pronRecordBtn) pronRecordBtn.disabled = true;
+        }
+        
+        function initPronunciaModule() {
+            currentPronWord = '';
+            textToPronounceElem.textContent = 'Premi "Nuova Parola da Leggere"';
+            textToPronounceElem.className = ''; 
+            textToPronounceElem.style.backgroundColor = '#e3f2fd'; 
+            recognizedPronunciationElem.textContent = '- - -';
+            pronFeedback.innerHTML = '';
+            pronStatus.textContent = SpeechRecognition ? 'Pronto per leggere e parlare!' : 'Riconoscimento vocale non supportato.';
+            generateNewPronWord();
+        }
+
+        function generateNewPronWord() {
+            currentPronWord = getRandomWord(pronSyllableSelect.value);
+            applyFontToPronWord();
+            recognizedPronunciationElem.textContent = '- - -';
+            pronFeedback.innerHTML = '';
+            textToPronounceElem.className = pronFontSelect.value; 
+            textToPronounceElem.style.backgroundColor = '#e3f2fd';
+            pronStatus.textContent = 'Leggi la parola qui sopra e poi premi "Premi e Parla"!';
+        }
+        
+        function applyFontToPronWord() {
+            if (!currentPronWord) return; 
+            textToPronounceElem.textContent = currentPronWord; 
+            textToPronounceElem.className = ''; 
+            textToPronounceElem.classList.add(pronFontSelect.value); 
+        }
+
+        pronNewWordBtn.addEventListener('click', generateNewPronWord);
+        pronFontSelect.addEventListener('change', applyFontToPronWord);
+
+        pronRecordBtn.addEventListener('click', () => {
+            if (!SpeechRecognition) { pronStatus.textContent = "Riconoscimento vocale non supportato."; return;}
+            if (!currentPronWord) { pronStatus.textContent = 'Prima genera una parola da leggere!'; return; }
+            if (isAsrRecording) {
+                recognition.stop(); 
+            } else {
+                recognizedPronunciationElem.textContent = '- - -'; 
+                pronFeedback.innerHTML = '';
+                textToPronounceElem.style.backgroundColor = '#e3f2fd'; 
+                try {
+                    recognition.start();
+                } catch(e) {
+                    pronStatus.textContent = "Errore nell'avviare la registrazione. Riprova.";
+                    console.error("Errore avvio ASR: ", e);
+                    isAsrRecording = false; 
+                    pronRecordBtn.textContent = 'Premi e Parla 🎤';
+                    pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
+                }
+            }
+        });
+
+        // --- MODULO IMPOSTAZIONI ---
+        speechRateRange.addEventListener('input', (e) => {
+            speechRate = parseFloat(e.target.value);
+            speechRateValue.textContent = speechRate.toFixed(1);
+        });
+
+        function populateVoiceList() {
+            if (typeof speechSynthesis === 'undefined') return;
+            
+            const voices = speechSynthesis.getVoices();
+            voiceSelect.innerHTML = ''; 
+            
+            const italianVoices = voices.filter(voice => voice.lang.startsWith('it-IT'));
+            
+            if (italianVoices.length === 0) {
+                const option = document.createElement('option');
+                option.textContent = "Nessuna voce italiana trovata";
+                option.disabled = true;
+                voiceSelect.appendChild(option);
+                return;
+            }
+
+            italianVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.textContent = `${voice.name} (${voice.lang})`;
+                option.setAttribute('data-lang', voice.lang);
+                option.setAttribute('data-name', voice.name);
+                voiceSelect.appendChild(option);
+            });
+            if (voiceSelect.options.length > 0) {
+                 selectedSpeechSynthesisVoice = speechSynthesis.getVoices().find(v => v.name === voiceSelect.options[0].dataset.name) || italianVoices[0];
+                 voiceSelect.selectedIndex = 0;
+            }
+        }
+        
+        
+        if (typeof speechSynthesis !== 'undefined') {
+            if (speechSynthesis.getVoices().length === 0) {
+                 speechSynthesis.onvoiceschanged = populateVoiceList;
+            } else {
+                populateVoiceList(); // Se le voci sono già disponibili
+            }
+        }
+        
+        voiceSelect.addEventListener('change', () => {
+            const selectedOptionName = voiceSelect.selectedOptions[0].getAttribute('data-name');
+            selectedSpeechSynthesisVoice = speechSynthesis.getVoices().find(voice => voice.name === selectedOptionName);
+        });
+
+        // --- ANIMAZIONE FUOCHI D'ARTIFICIO ---
+        function triggerFireworks() {
+            const colors = ['var(--primary-color)', 'var(--secondary-color)', 'var(--tertiary-color)', '#4caf50', '#f44336', '#9c27b0'];
+            for (let i = 0; i < 25; i++) { 
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const xStart = Math.random() * fireworksContainer.offsetWidth;
+                const yStart = Math.random() * fireworksContainer.offsetHeight;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 100 + 50; 
+                const txEnd = Math.cos(angle) * distance;
+                const tyEnd = Math.sin(angle) * distance;
+
+                particle.style.setProperty('--tx', '0px');
+                particle.style.setProperty('--tx-end', `${txEnd}px`);
+                particle.style.setProperty('--ty', '0px'); // Imposta ty a 0, non txEnd
+                particle.style.setProperty('--ty-end', `${tyEnd}px`);
+                
+                particle.style.left = `${xStart}px`;
+                particle.style.top = `${yStart}px`;
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                fireworksContainer.appendChild(particle);
+                setTimeout(() => particle.remove(), 800); 
+            }
+        }
+
+        // --- INIZIALIZZAZIONE AL CARICAMENTO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (navButtons.length > 0) {
+                navButtons[0].click(); 
+            }
+        });
+    </script>
+</body>
+</html>
