@@ -329,8 +329,8 @@
         <div class="input-group">
             <button id="pronRecordBtn" class="action-btn">Premi e Parla 🎤</button>
             <p style="font-size: 0.9em; color: #666;">(La prima volta, il browser chiederà il permesso per il microfono)</p>
-            <button id="pronPlayUserRecordingBtn" disabled title="Funzione non disponibile in questa demo">Ascolta la tua Registrazione 🎧</button>
-            <button id="pronClearUserRecordingBtn" disabled title="Funzione non disponibile in questa demo">Cancella Registrazione 🗑️</button>
+            <button id="pronPlayUserRecordingBtn" disabled>Ascolta la tua Registrazione 🎧</button>
+            <button id="pronClearUserRecordingBtn" disabled>Cancella Registrazione 🗑️</button>
             
             <p>Parola che hai detto:</p>
             <div id="recognizedPronunciation">- - -</div>
@@ -511,7 +511,10 @@
         let currentPronWord = '';
         let speechRate = 1;
         let selectedSpeechSynthesisVoice = null;
-        let tesseractScheduler = null; 
+        let tesseractScheduler = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordedAudioURL = null;
 
         // Elementi DOM
         const modules = document.querySelectorAll('.module');
@@ -540,9 +543,8 @@
         const recognizedPronunciationElem = document.getElementById('recognizedPronunciation');
         const pronFeedback = document.getElementById('pronFeedback');
         const pronStatus = document.getElementById('pronStatus');
-        // I pulsanti per riprodurre/cancellare registrazione utente sono disabilitati
-        // const pronPlayUserRecordingBtn = document.getElementById('pronPlayUserRecordingBtn');
-        // const pronClearUserRecordingBtn = document.getElementById('pronClearUserRecordingBtn');
+        const pronPlayUserRecordingBtn = document.getElementById('pronPlayUserRecordingBtn');
+        const pronClearUserRecordingBtn = document.getElementById('pronClearUserRecordingBtn');
 
         // Impostazioni
         const speechRateRange = document.getElementById('speechRateRange');
@@ -810,6 +812,7 @@
                 isAsrRecording = false;
                 pronRecordBtn.textContent = 'Premi e Parla 🎤';
                 pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
+                if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
                 if (recognizedPronunciationElem.textContent === '- - -' && !pronFeedback.textContent.includes("ERRORE")) {
                     pronStatus.textContent = 'Non ho capito bene. Riprova a parlare!';
                 }
@@ -838,11 +841,16 @@
         function initPronunciaModule() {
             currentPronWord = '';
             textToPronounceElem.textContent = 'Premi "Nuova Parola da Leggere"';
-            textToPronounceElem.className = ''; 
-            textToPronounceElem.style.backgroundColor = '#e3f2fd'; 
+            textToPronounceElem.className = '';
+            textToPronounceElem.style.backgroundColor = '#e3f2fd';
             recognizedPronunciationElem.textContent = '- - -';
             pronFeedback.innerHTML = '';
             pronStatus.textContent = SpeechRecognition ? 'Pronto per leggere e parlare!' : 'Riconoscimento vocale non supportato.';
+            // Reset stato registrazione
+            if (recordedAudioURL) { URL.revokeObjectURL(recordedAudioURL); recordedAudioURL = null; }
+            audioChunks = [];
+            pronPlayUserRecordingBtn.disabled = true;
+            pronClearUserRecordingBtn.disabled = true;
             generateNewPronWord();
         }
 
@@ -866,25 +874,69 @@
         pronNewWordBtn.addEventListener('click', generateNewPronWord);
         pronFontSelect.addEventListener('change', applyFontToPronWord);
 
-        pronRecordBtn.addEventListener('click', () => {
-            if (!SpeechRecognition) { pronStatus.textContent = "Riconoscimento vocale non supportato."; return;}
+        pronRecordBtn.addEventListener('click', async () => {
+            if (!SpeechRecognition) { pronStatus.textContent = "Riconoscimento vocale non supportato."; return; }
             if (!currentPronWord) { pronStatus.textContent = 'Prima genera una parola da leggere!'; return; }
             if (isAsrRecording) {
-                recognition.stop(); 
+                recognition.stop();
+                if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
             } else {
-                recognizedPronunciationElem.textContent = '- - -'; 
+                recognizedPronunciationElem.textContent = '- - -';
                 pronFeedback.innerHTML = '';
-                textToPronounceElem.style.backgroundColor = '#e3f2fd'; 
+                textToPronounceElem.style.backgroundColor = '#e3f2fd';
+                audioChunks = [];
                 try {
+                    // Richiedi accesso microfono per MediaRecorder
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) audioChunks.push(e.data);
+                    };
+                    mediaRecorder.onstop = () => {
+                        // Rilascia il microfono
+                        stream.getTracks().forEach(t => t.stop());
+                        if (audioChunks.length > 0) {
+                            if (recordedAudioURL) URL.revokeObjectURL(recordedAudioURL);
+                            const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                            recordedAudioURL = URL.createObjectURL(blob);
+                            pronPlayUserRecordingBtn.disabled = false;
+                            pronClearUserRecordingBtn.disabled = false;
+                        }
+                    };
+                    mediaRecorder.start();
                     recognition.start();
-                } catch(e) {
-                    pronStatus.textContent = "Errore nell'avviare la registrazione. Riprova.";
-                    console.error("Errore avvio ASR: ", e);
-                    isAsrRecording = false; 
+                } catch (e) {
+                    pronStatus.textContent = "Errore nell'avviare la registrazione. Controlla il microfono.";
+                    console.error("Errore avvio registrazione:", e);
+                    isAsrRecording = false;
                     pronRecordBtn.textContent = 'Premi e Parla 🎤';
                     pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
                 }
             }
+        });
+
+        pronPlayUserRecordingBtn.addEventListener('click', () => {
+            if (!recordedAudioURL) return;
+            const audio = new Audio(recordedAudioURL);
+            pronPlayUserRecordingBtn.disabled = true;
+            pronStatus.textContent = 'Riproduzione in corso... 🎧';
+            audio.play();
+            audio.onended = () => {
+                pronPlayUserRecordingBtn.disabled = false;
+                pronStatus.textContent = '';
+            };
+            audio.onerror = () => {
+                pronPlayUserRecordingBtn.disabled = false;
+                pronStatus.textContent = 'Errore nella riproduzione.';
+            };
+        });
+
+        pronClearUserRecordingBtn.addEventListener('click', () => {
+            if (recordedAudioURL) { URL.revokeObjectURL(recordedAudioURL); recordedAudioURL = null; }
+            audioChunks = [];
+            pronPlayUserRecordingBtn.disabled = true;
+            pronClearUserRecordingBtn.disabled = true;
+            pronStatus.textContent = 'Registrazione cancellata.';
         });
 
         // --- MODULO IMPOSTAZIONI ---
