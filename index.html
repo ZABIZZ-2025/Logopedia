@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apprendi Parole Divertendoti! (800 Parole)</title>
+    <title>Apprendi Parole Divertendoti!</title>
     <!-- Importa Tesseract.js da CDN -->
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
     <style>
@@ -416,9 +416,7 @@
     <div class="fireworks-container" id="fireworksContainer"></div>
 
     <script>
-        // --- DATABASE PAROLE (CIRCA 800 PAROLE) ---
-        // Le parole sono in MAIUSCOLO per facilitare il confronto.
-        // La sillabazione è approssimativa per la demo.
+        // --- DATABASE PAROLE ---
         // Database organizzato per TEMA → NUMERO DI SILLABE
         // Parole semplici e comuni, adatte a bambini in età scolastica
         const wordDatabase = {
@@ -441,10 +439,10 @@
                     "merlo","cigno","riccio","lepre","mosca","trota","porco"],
                 3: ["cavallo","coniglio","delfino","farfalla","aquila","pecora","cicala",
                     "asino","leone","pavone","formica","cicogna","gallina","lucciola",
-                    "castoro","serpente","pinguino","criceto","canarino","medusa"],
+                    "castoro","serpente","pinguino","criceto","medusa"],
                 4: ["elefante","tartaruga","coccodrillo","lucertola","coccinella",
                     "scoiattolo","calamaro","tarantola","pappagallo","pipistrello",
-                    "salamandra","scarafaggio"],
+                    "salamandra","scarafaggio","canarino"],
                 5: ["rinoceronte","ippopotamo","camaleonte","orangotango","coleottero",
                     "pterodattilo"]
             },
@@ -457,82 +455,80 @@
                     "ciambella","focaccia","pistacchio","fagioli","spinaci","ciliegia"],
                 4: ["pomodoro","mandarino","melanzana","cioccolato","mozzarella",
                     "tortellini","parmigiano","cavolfiore","maionese","carbonara",
-                    "cotoletta","cannelloni"],
-                5: ["cioccolatino","peperoncino","prosciuttino","salmoriglio","giardiniera"]
+                    "cotoletta","cannelloni","tagliatelle"],
+                5: ["cioccolatino","peperoncino","pomodorino"]
             },
             casa: {
                 2: ["porta","letto","sedia","tetto","muro","vaso","bagno","scala",
                     "chiave","stanza","forno","frigo","specchio","presa","piano",
-                    "tenda","stufa","secchio","panca","tasto"],
+                    "tenda","stufa","secchio","panca"],
                 3: ["tavolo","cucina","coperta","divano","finestra","armadio","poltrona",
                     "terrazzo","balcone","cantina","giardino","tappeto","mensola",
-                    "cassetto","bollitore","cucchiaio","pattumiera"],
+                    "cassetto","bollitore","cucchiaio"],
                 4: ["comodino","lavandino","lampadina","lavatrice","candelabro",
-                    "portafinestra","cassapanca","materasso"],
-                5: ["frigorifero","aspirapolvere","lavastoviglie","televisore","calorifero"]
+                    "cassapanca","materasso","battistero"],
+                5: ["frigorifero","lavastoviglie","televisore","calorifero","portafinestra"]
             },
             corpo: {
                 2: ["mano","piede","naso","bocca","dito","testa","collo","spalla",
-                    "braccio","gomito","ginocchio","schiena","guancia","mento","orecchio"],
-                3: ["capelli","caviglia","costola","stomaco","polpaccio","ascella",
-                    "forchetta","palpebra","sopracciglio","mandibola"],
-                4: ["ginocchiera","polpastrello","sopracciglio","palpebre"],
-                5: ["appendicite","articolazione","circolazione","respirazione"]
+                    "braccio","schiena","guancia","mento","gamba","occhio"],
+                3: ["capelli","caviglia","costola","stomaco","polpaccio","palpebra",
+                    "ascella","gomito","orecchio","ginocchio","polmone","intestino"],
+                4: ["ginocchiera","polpastrello","sopracciglio","mandibola"],
+                5: ["appendicite","circolazione","respirazione"]
             },
             natura: {
                 2: ["sole","luna","mare","lago","monte","bosco","fiume","neve",
-                    "vento","fiore","erba","nube","rocca","sabbia","foglia","pioggia"],
-                3: ["cielo","collina","foresta","montagna","vulcano","deserto",
-                    "ghiaccio","arcobaleno","primavera","tempesta","cascata","prateria"],
-                4: ["temporale","piantagione","terremoto","primavera","atmosfera",
-                    "orizzonte","crepuscolo"],
-                5: ["precipitazione","terremoto","biodiversita","meteorologia",
-                    "inquinamento"]
+                    "vento","fiore","erba","nube","rocca","sabbia","foglia","pioggia",
+                    "cielo","ghiaccio"],
+                3: ["collina","foresta","montagna","vulcano","deserto","tempesta",
+                    "cascata","stagione","pianura","savana","tifone"],
+                4: ["primavera","atmosfera","orizzonte","crepuscolo","temporale",
+                    "piantagione","prateria"],
+                5: ["arcobaleno","biodiversita","inquinamento"]
             },
             scuola: {
-                2: ["penna","libro","banco","carta","gomma","riga","classe","porta",
-                    "gesso","zaino","colla","metro","compasso"],
-                3: ["matita","quaderno","maestra","lavagna","compito","ricreazione",
-                    "disegno","racconto","biblioteca","cartella","righello","squadra"],
-                4: ["calcolatrice","matematica","grammatica","geometria","dizionario",
-                    "insegnante","illustrazione","laboratorio"],
-                5: ["enciclopedia","informatica","interrogazione","ricreazione",
-                    "collaborazione"]
+                2: ["penna","libro","banco","carta","gomma","riga","classe","gesso",
+                    "zaino","colla","metro","squadra"],
+                3: ["matita","quaderno","maestra","lavagna","compito","disegno",
+                    "racconto","cartella","righello","compasso","diagramma","tombola"],
+                4: ["grammatica","insegnante","biblioteca","dizionario","lavagnetta",
+                    "triangolo","ricreazione"],
+                5: ["matematica","geometria","calcolatrice","laboratorio","enciclopedia",
+                    "informatica"]
             },
             vestiti: {
-                2: ["gonna","scarpa","borsa","guanto","cintura","calza","maglia",
-                    "camicia","cravatta","borsetta"],
-                3: ["giacca","pantalone","cappello","stivale","sandalo","maglione",
-                    "felpa","cappotto","grembiule","pigiama"],
-                4: ["impermeabile","calzamaglia","canottiera","paletot","sottoveste",
-                    "bretelle","cappellino"],
-                5: ["abbigliamento","impermeabile","collant"]
+                2: ["gonna","scarpa","borsa","guanto","calza","maglia","tuta","sciarpa",
+                    "fascia","polo","felpa","giacca","collant"],
+                3: ["cappello","stivale","sandalo","maglione","cappotto","pigiama",
+                    "camicia","cravatta","borsetta","cintura","giubbotto","bretelle"],
+                4: ["pantalone","calzamaglia","canottiera","sottoveste","cappellino"],
+                5: ["abbigliamento","impermeabile"]
             },
             veicoli: {
-                2: ["auto","bici","treno","barca","moto","tram","aereo","nave",
-                    "jeep","furgone"],
-                3: ["autobus","elicottero","motociclo","camion","trattore","scooter",
-                    "veliero","vaporetto","traghetto"],
-                4: ["automobile","motocicletta","locomotiva","sottomarino","astronave",
-                    "elicottero","portaerei"],
-                5: ["motociclismo","automobilismo","elicottero"]
+                2: ["auto","bici","treno","barca","moto","tram","nave","taxi"],
+                3: ["autobus","camion","trattore","veliero","traghetto","furgone",
+                    "rimorchio"],
+                4: ["astronave","aereo","motociclo","vaporetto","fuoristrada"],
+                5: ["motocicletta","locomotiva","sottomarino","portaerei","elicottero"]
             },
             giochi: {
-                2: ["palla","dado","carte","nodo","corsa","salto","gioco","dama",
-                    "mosca","gara","flauto","tromba"],
-                3: ["pallone","bicicletta","bambola","puzzle","scivolo","altalena",
-                    "aquilone","filastrocca","chitarra","acrobata"],
-                4: ["videogioco","costruzioni","tombola","carnevale","pallanuoto",
-                    "calcio","pallavolo"],
-                5: ["filastrocca","girotondo","acrobatica","campionato"]
+                2: ["palla","dado","carte","corsa","salto","gioco","dama","gara",
+                    "calcio","judo"],
+                3: ["pallone","bambola","scivolo","chitarra","disegno","pittura",
+                    "teatro","domino","tombola"],
+                4: ["costruzioni","carnevale","pallanuoto","bicicletta","altalena",
+                    "filastrocca","aquilone","pallavolo","campionato","girotondo",
+                    "ginnastica"],
+                5: ["videogioco","acrobatica","pallacanestro"]
             },
             famiglia: {
-                2: ["mamma","papà","nonno","nonna","figlio","figlia","zio","zia",
-                    "babbo","nipote","cugino","cuginа"],
+                2: ["mamma","papà","nonno","nonna","figlio","figlia","zio","zia","babbo"],
                 3: ["fratello","sorella","bisnonno","padrino","madrina","famiglia",
-                    "cognato","cognata","parente","gemelli"],
-                4: ["bisnonno","bisnonna","pronipote","capofamiglia"],
-                5: ["pronipote","capofamiglia","anniversario","battesimo"]
+                    "cognato","cognata","parente","gemelli","nipote","cugino","cugina"],
+                4: ["pronipote","matrimonio","genitore","parentela","adozione",
+                    "discendente","battesimo"],
+                5: ["capofamiglia","anniversario","celebrazione","generazione"]
             }
         };
 
@@ -602,7 +598,6 @@
                         } else if (m.status === 'recognizing text') {
                              compHandwritingStatus.textContent = `Riconoscimento: ${Math.round(m.progress * 100)}%`;
                         }
-                        // console.log("Tesseract Logger:", m);
                     },
                 });
                  if (!worker) {
@@ -1044,7 +1039,6 @@
             applyFontToPronWord();
             recognizedPronunciationElem.textContent = '- - -';
             pronFeedback.innerHTML = '';
-            textToPronounceElem.className = pronFontSelect.value; 
             textToPronounceElem.style.backgroundColor = '#e3f2fd';
             pronStatus.textContent = 'Leggi la parola qui sopra e poi premi "Premi e Parla"!';
         }
@@ -1061,6 +1055,7 @@
 
         pronRecordBtn.addEventListener('click', async () => {
             if (!SpeechRecognition) { pronStatus.textContent = "Riconoscimento vocale non supportato."; return; }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { pronStatus.textContent = "Registrazione audio non supportata (richiede HTTPS)."; return; }
             if (!currentPronWord) { pronStatus.textContent = 'Prima genera una parola da leggere!'; return; }
             if (isAsrRecording) {
                 recognition.stop();
@@ -1170,7 +1165,7 @@
         
         voiceSelect.addEventListener('change', () => {
             const selectedOptionName = voiceSelect.selectedOptions[0].getAttribute('data-name');
-            selectedSpeechSynthesisVoice = speechSynthesis.getVoices().find(voice => voice.name === selectedOptionName);
+            selectedSpeechSynthesisVoice = speechSynthesis.getVoices().find(voice => voice.name === selectedOptionName) || selectedSpeechSynthesisVoice;
         });
 
         // --- ANIMAZIONE FUOCHI D'ARTIFICIO ---
