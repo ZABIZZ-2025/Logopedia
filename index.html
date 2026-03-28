@@ -164,14 +164,65 @@
             transform: none !important;
         }
 
-        #writingCanvas {
+        #letterBoxesContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            padding: 10px 0;
+            min-height: 110px;
+        }
+
+        .letter-box-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .letter-box-number {
+            font-size: 0.75em;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .letter-canvas {
             border: 3px solid var(--tertiary-color);
-            background-color: #fff8e1; /* Crema chiaro per "lavagna" */
+            background-color: #fff8e1;
             cursor: crosshair;
             touch-action: none;
-            border-radius: 10px;
-            max-width: 100%; /* Responsive */
-            box-sizing: border-box;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .letter-canvas.active-letter-box {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(41, 182, 246, 0.5);
+        }
+
+        .letter-canvas.correct-box {
+            border-color: var(--success-color) !important;
+            background-color: #e8f5e9 !important;
+        }
+
+        .letter-canvas.incorrect-box {
+            border-color: var(--error-color) !important;
+            background-color: #ffebee !important;
+        }
+
+        .letter-clear-btn {
+            padding: 2px 6px;
+            font-size: 0.7em;
+            background-color: #ef9a9a;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-family: var(--font-fun);
+        }
+
+        .letter-clear-btn:hover {
+            background-color: var(--error-color);
         }
 
         .feedback-container { /* Contenitore per feedback per layout */
@@ -189,9 +240,9 @@
         .correct-feedback { color: var(--success-color); }
         .incorrect-feedback { color: var(--error-color); }
 
-        /* Input/Canvas con sfondo colorato per feedback */
-        input[type="text"].correct, #writingCanvas.correct { background-color: #e8f5e9 !important; border-color: var(--success-color) !important; }
-        input[type="text"].incorrect, #writingCanvas.incorrect { background-color: #ffebee !important; border-color: var(--error-color) !important; }
+        /* Input con sfondo colorato per feedback */
+        input[type="text"].correct { background-color: #e8f5e9 !important; border-color: var(--success-color) !important; }
+        input[type="text"].incorrect { background-color: #ffebee !important; border-color: var(--error-color) !important; }
         
         #textToPronounce {
             font-size: clamp(1.8em, 6vw, 3em);
@@ -255,9 +306,9 @@
         .font-corsivo-maiuscolo { text-transform: uppercase; font-family: var(--font-fun); font-style: italic; }
         .font-corsivo-minuscolo { text-transform: lowercase; font-family: var(--font-fun); font-style: italic; }
 
-        /* Responsive per canvas */
+        /* Responsive caselle lettera */
         @media (max-width: 600px) {
-            #writingCanvas { width: 100%; height: 150px; } /* Adatta larghezza e altezza fissa */
+            .letter-canvas { width: 60px !important; height: 70px !important; }
         }
     </style>
 </head>
@@ -295,10 +346,11 @@
         </div>
 
         <div class="input-group">
-            <p>Oppure disegna la parola qui sotto (meglio in STAMPATELLO):</p>
-            <canvas id="writingCanvas" width="450" height="180"></canvas>
+            <p>Disegna ogni lettera nella sua casella (in STAMPATELLO maiuscolo):</p>
+            <small style="color:#757575;">Clicca o tocca una casella per selezionarla (bordo blu), poi disegna la lettera. Usa ✕ per cancellare una singola casella.</small>
+            <div id="letterBoxesContainer"></div>
             <button id="compCheckHandwritingBtn" class="action-btn">Controlla Disegno! 👍</button>
-            <button id="compClearCanvasBtn">Pulisci Lavagna 🧼</button>
+            <button id="compClearCanvasBtn">Pulisci Tutto 🧼</button>
             <div id="compHandwritingFeedback" class="feedback-container"></div>
             <div id="compHandwritingStatus"></div>
         </div>
@@ -527,12 +579,11 @@
         const compKeyboardInput = document.getElementById('compKeyboardInput');
         const compCheckKeyboardBtn = document.getElementById('compCheckKeyboardBtn');
         const compKeyboardFeedback = document.getElementById('compKeyboardFeedback');
-        const writingCanvas = document.getElementById('writingCanvas');
+        const letterBoxesContainer = document.getElementById('letterBoxesContainer');
         const compCheckHandwritingBtn = document.getElementById('compCheckHandwritingBtn');
         const compClearCanvasBtn = document.getElementById('compClearCanvasBtn');
         const compHandwritingFeedback = document.getElementById('compHandwritingFeedback');
         const compHandwritingStatus = document.getElementById('compHandwritingStatus');
-        const ctx = writingCanvas.getContext('2d');
 
         // Pronuncia
         const pronSyllableSelect = document.getElementById('pronSyllableSelect');
@@ -576,10 +627,15 @@
                  if (!worker) {
                     console.error("Creazione Tesseract Worker fallita.");
                     compHandwritingStatus.textContent = "Errore Tesseract Worker.";
-                    tesseractScheduler.terminate(); // Pulisce lo scheduler se il worker fallisce
+                    tesseractScheduler.terminate();
                     tesseractScheduler = null;
                     return;
                 }
+                // PSM 10 = singolo carattere; whitelist lettere maiuscole italiane
+                await worker.setParameters({
+                    tessedit_pageseg_mode: '10',
+                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                });
                 await tesseractScheduler.addWorker(worker);
                 compHandwritingStatus.textContent = 'Pronto per disegnare!';
             } catch (error) {
@@ -630,7 +686,7 @@
             textSpan.textContent = messageText;
             textSpan.classList.add('feedback-text');
 
-            const originalBgColor = inputElementOrCanvas ? (inputElementOrCanvas.id === 'writingCanvas' ? '#fff8e1' : (inputElementOrCanvas.id === 'textToPronounce' ? '#e3f2fd' : 'var(--bg-white)')) : null;
+            const originalBgColor = inputElementOrCanvas ? (inputElementOrCanvas.id === 'textToPronounce' ? '#e3f2fd' : 'var(--bg-white)') : null;
             
             if (isCorrect) {
                 textSpan.classList.add('correct-feedback');
@@ -670,15 +726,18 @@
         });
 
         // --- MODULO COMPRENSIONE ---
-        let isDrawing = false; let lastX = 0; let lastY = 0;
+        let letterCanvases = [];
+        let letterContexts = [];
+        let activeLetterIndex = 0;
+        let letterIsDrawing = false;
+        let letterLastX = 0;
+        let letterLastY = 0;
 
         function initComprensioneModule() {
-            clearCanvas();
             compKeyboardInput.value = '';
             compKeyboardFeedback.innerHTML = '';
             compHandwritingFeedback.innerHTML = '';
-            compKeyboardInput.className = ''; 
-            writingCanvas.className = ''; 
+            compKeyboardInput.className = '';
             if (tesseractScheduler) compHandwritingStatus.textContent = 'Pronto per disegnare!';
             else compHandwritingStatus.textContent = 'Inizializzazione Tesseract... attendere.';
             generateNewCompWord();
@@ -690,10 +749,9 @@
             compKeyboardInput.value = '';
             compKeyboardInput.className = '';
             compKeyboardFeedback.innerHTML = '';
-            clearCanvas(); 
-            writingCanvas.className = '';
             compHandwritingFeedback.innerHTML = '';
-            if (tesseractScheduler) compHandwritingStatus.textContent = 'Nuova parola! Disegna o scrivi.';
+            initializeLetterBoxes(currentCompWord);
+            if (tesseractScheduler) compHandwritingStatus.textContent = 'Disegna ogni lettera nella sua casella!';
         }
 
         compNewWordBtn.addEventListener('click', generateNewCompWord);
@@ -722,52 +780,150 @@
             return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
         }
 
-        function startDrawing(e) { e.preventDefault(); isDrawing = true; const pos = getCanvasPos(writingCanvas, e); [lastX, lastY] = [pos.x, pos.y]; }
-        function draw(e) {
-            e.preventDefault(); if (!isDrawing) return;
-            const pos = getCanvasPos(writingCanvas, e);
-            ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(pos.x, pos.y);
-            ctx.strokeStyle = '#333'; ctx.lineWidth = Math.max(2, writingCanvas.width / 150); 
-            ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
-            [lastX, lastY] = [pos.x, pos.y];
+        function initializeLetterBoxes(word) {
+            letterBoxesContainer.innerHTML = '';
+            letterCanvases = [];
+            letterContexts = [];
+            activeLetterIndex = 0;
+            compHandwritingFeedback.innerHTML = '';
+
+            const letters = normalizeText(word).split('');
+            letters.forEach((letter, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'letter-box-wrapper';
+
+                const numLabel = document.createElement('span');
+                numLabel.className = 'letter-box-number';
+                numLabel.textContent = index + 1;
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 80;
+                canvas.height = 90;
+                canvas.className = 'letter-canvas';
+                canvas.dataset.index = index;
+
+                const lctx = canvas.getContext('2d');
+                lctx.fillStyle = '#fff8e1';
+                lctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                canvas.addEventListener('mousedown', (e) => startLetterDrawing(e, index));
+                canvas.addEventListener('mousemove', (e) => drawLetter(e, index));
+                canvas.addEventListener('mouseup', stopLetterDrawing);
+                canvas.addEventListener('mouseout', stopLetterDrawing);
+                canvas.addEventListener('touchstart', (e) => startLetterDrawing(e, index), { passive: false });
+                canvas.addEventListener('touchmove', (e) => drawLetter(e, index), { passive: false });
+                canvas.addEventListener('touchend', stopLetterDrawing);
+
+                const clearBtn = document.createElement('button');
+                clearBtn.textContent = '✕';
+                clearBtn.className = 'letter-clear-btn';
+                clearBtn.title = 'Cancella questa casella';
+                clearBtn.addEventListener('click', (e) => { e.stopPropagation(); clearLetterBox(index); });
+
+                wrapper.appendChild(numLabel);
+                wrapper.appendChild(canvas);
+                wrapper.appendChild(clearBtn);
+                letterBoxesContainer.appendChild(wrapper);
+
+                letterCanvases.push(canvas);
+                letterContexts.push(lctx);
+            });
+
+            if (letterCanvases.length > 0) setActiveLetterBox(0);
         }
-        function stopDrawing() { if (isDrawing) isDrawing = false; }
-        
-        writingCanvas.addEventListener('mousedown', startDrawing);
-        writingCanvas.addEventListener('mousemove', draw);
-        writingCanvas.addEventListener('mouseup', stopDrawing);
-        writingCanvas.addEventListener('mouseout', stopDrawing);
-        writingCanvas.addEventListener('touchstart', startDrawing, { passive: false });
-        writingCanvas.addEventListener('touchmove', draw, { passive: false });
-        writingCanvas.addEventListener('touchend', stopDrawing);
-        
-        function clearCanvas() {
-            ctx.clearRect(0, 0, writingCanvas.width, writingCanvas.height);
-            writingCanvas.className = ''; 
-            writingCanvas.style.backgroundColor = '#fff8e1'; // Ripristina colore originale
-            if (tesseractScheduler) compHandwritingStatus.textContent = 'Lavagna pulita!';
+
+        function setActiveLetterBox(index) {
+            activeLetterIndex = index;
+            letterCanvases.forEach((c, i) => c.classList.toggle('active-letter-box', i === index));
         }
-        compClearCanvasBtn.addEventListener('click', clearCanvas);
+
+        function startLetterDrawing(e, index) {
+            e.preventDefault();
+            setActiveLetterBox(index);
+            letterIsDrawing = true;
+            const pos = getCanvasPos(letterCanvases[index], e);
+            letterLastX = pos.x;
+            letterLastY = pos.y;
+        }
+
+        function drawLetter(e, index) {
+            e.preventDefault();
+            if (!letterIsDrawing || index !== activeLetterIndex) return;
+            const canvas = letterCanvases[index];
+            const lctx = letterContexts[index];
+            const pos = getCanvasPos(canvas, e);
+            lctx.beginPath();
+            lctx.moveTo(letterLastX, letterLastY);
+            lctx.lineTo(pos.x, pos.y);
+            lctx.strokeStyle = '#333';
+            lctx.lineWidth = 4;
+            lctx.lineCap = 'round';
+            lctx.lineJoin = 'round';
+            lctx.stroke();
+            letterLastX = pos.x;
+            letterLastY = pos.y;
+        }
+
+        function stopLetterDrawing() {
+            letterIsDrawing = false;
+        }
+
+        function clearLetterBox(index) {
+            const canvas = letterCanvases[index];
+            const lctx = letterContexts[index];
+            lctx.clearRect(0, 0, canvas.width, canvas.height);
+            lctx.fillStyle = '#fff8e1';
+            lctx.fillRect(0, 0, canvas.width, canvas.height);
+            canvas.classList.remove('correct-box', 'incorrect-box');
+        }
+
+        function clearAllLetterBoxes() {
+            letterCanvases.forEach((c, i) => clearLetterBox(i));
+            if (letterCanvases.length > 0) setActiveLetterBox(0);
+            compHandwritingFeedback.innerHTML = '';
+            if (tesseractScheduler) compHandwritingStatus.textContent = 'Caselle pulite! Ricomincia a disegnare.';
+        }
+
+        compClearCanvasBtn.addEventListener('click', clearAllLetterBoxes);
 
         compCheckHandwritingBtn.addEventListener('click', async () => {
             if (!currentCompWord) { compHandwritingStatus.textContent = 'Prima genera una parola!'; return; }
             if (!tesseractScheduler) { compHandwritingStatus.textContent = 'Tesseract non è pronto. Attendi o ricarica.'; return; }
+            if (letterCanvases.length === 0) { compHandwritingStatus.textContent = 'Prima genera una parola!'; return; }
 
-            compHandwritingStatus.textContent = 'Riconoscimento scrittura in corso... 🧠';
             compCheckHandwritingBtn.disabled = true;
             compClearCanvasBtn.disabled = true;
 
+            const wordLetters = normalizeText(currentCompWord).split('');
+            let allCorrect = true;
+            const recognizedChars = [];
+
             try {
-                const { data: { text } } = await tesseractScheduler.addJob('recognize', writingCanvas);
-                const userAnswer = normalizeText(text);
-                const correctAnswer = normalizeText(currentCompWord);
-                const isCorrect = userAnswer === correctAnswer;
-                displayFeedback(compHandwritingFeedback, writingCanvas, isCorrect, isCorrect ? "OTTIMO DISEGNO! BRAVO! 🎉" : "NON PROPRIO... RIPROVA A SCRIVERE 💪");
-                compHandwritingStatus.textContent = `Tesseract ha letto: "${userAnswer || "Niente"}" (Parola corretta: ${correctAnswer})`;
+                for (let i = 0; i < letterCanvases.length; i++) {
+                    compHandwritingStatus.textContent = `Riconoscimento lettera ${i + 1} di ${letterCanvases.length}... 🧠`;
+                    const { data: { text } } = await tesseractScheduler.addJob('recognize', letterCanvases[i]);
+                    const cleaned = normalizeText(text).replace(/\s/g, '');
+                    const recognized = cleaned[0] || '';
+                    const expected = wordLetters[i];
+                    const isLetterCorrect = recognized === expected;
+
+                    if (!isLetterCorrect) allCorrect = false;
+                    recognizedChars.push(recognized || '?');
+
+                    letterCanvases[i].classList.remove('correct-box', 'incorrect-box');
+                    letterCanvases[i].classList.add(isLetterCorrect ? 'correct-box' : 'incorrect-box');
+                }
+
+                const resultWord = recognizedChars.join('');
+                displayFeedback(
+                    compHandwritingFeedback, null, allCorrect,
+                    allCorrect ? "OTTIMO! HAI SCRITTO TUTTO BENE! 🎉" : "QUASI! LE CASELLE ROSSE VANNO RICONTROLLATE 💪"
+                );
+                compHandwritingStatus.textContent = `Ho letto: "${resultWord}" — Parola corretta: "${wordLetters.join('')}"`;
             } catch (error) {
-                console.error("Errore Tesseract durante riconoscimento:", error);
-                compHandwritingStatus.textContent = 'Ops! Errore nel riconoscere il disegno.';
-                displayFeedback(compHandwritingFeedback, writingCanvas, false, "ERRORE NEL RICONOSCIMENTO 😵");
+                console.error("Errore Tesseract:", error);
+                compHandwritingStatus.textContent = 'Errore nel riconoscimento. Riprova.';
+                displayFeedback(compHandwritingFeedback, null, false, "ERRORE NEL RICONOSCIMENTO 😵");
             } finally {
                 compCheckHandwritingBtn.disabled = false;
                 compClearCanvasBtn.disabled = false;
