@@ -327,6 +327,8 @@
     <div id="comprensione" class="module">
         <h2>Ascolta e Scrivi!</h2>
         <div class="controls-group">
+            <label for="compThemeSelect">Scegli il tema:</label>
+            <select id="compThemeSelect"></select>
             <label for="compSyllableSelect">Scegli la lunghezza della parola:</label>
             <select id="compSyllableSelect">
                 <option value="2">2 Sillabe (es. CA-NE)</option>
@@ -360,6 +362,8 @@
     <div id="pronuncia" class="module">
         <h2>Leggi e Parla!</h2>
         <div class="controls-group">
+            <label for="pronThemeSelect">Scegli il tema:</label>
+            <select id="pronThemeSelect"></select>
             <label for="pronSyllableSelect">Scegli la lunghezza della parola:</label>
             <select id="pronSyllableSelect">
                  <option value="2">2 Sillabe</option>
@@ -415,148 +419,123 @@
         // --- DATABASE PAROLE (CIRCA 800 PAROLE) ---
         // Le parole sono in MAIUSCOLO per facilitare il confronto.
         // La sillabazione è approssimativa per la demo.
+        // Database organizzato per TEMA → NUMERO DI SILLABE
+        // Parole semplici e comuni, adatte a bambini in età scolastica
         const wordDatabase = {
-            2: [
-                "acro", "agio", "alba", "alto", "anca", "anno", "arco", "arte", "aspo", "atto", "aula", "auto", "avro", "asse", "aghi", "armi", "alfa", "atri", "alga", "azze",
-                "baci", "bado", "ballo", "banco", "barca", "basco", "beffa", "beige", "beta", "bimbo", "bocca", "bomba", "borsa", "bosco", "bravo", "brina", "brodo", "bronzo", "bruco", "buffo",
-                "cado", "caldo", "calma", "campo", "canto", "carro", "cassa", "casto", "cento", "cervo", "cigno", "cinta", "cisti", "ciurma", "clima", "cloro", "collo", "copia", "corno", "corpo",
-                "dado", "dogma", "danza", "darsi", "delta", "dente", "destro", "dicco", "diga", "diplo", "disco", "dolce", "donne", "dorso", "dossi", "drago", "droga", "ducale", "dunque", "duolo",
-                "ebano", "ecco", "edile", "elmo", "elsa", "empio", "ente", "erba", "ermo", "erta", "esame", "esito", "estro", "etere", "etnia", "euro", "evaso", "evito", "extra", "etico",
-                "fame", "fango", "farne", "farsi", "fatto", "fauno", "feccia", "fermo", "ferro", "fiala", "fibra", "fieno", "filo", "fiume", "flora", "foglio", "folla", "fonte", "forma", "freno",
-                "gallo", "garbo", "gatto", "gelso", "gemma", "gente", "gergo", "ghisa", "giallo", "gioco", "giorno", "gitano", "globo", "gnomo", "gobbo", "goffo", "golfo", "gonna", "gorgo", "grande",
-                "hotel", "hobby", "hard", "home", "harem", "halloween", "horror", "hello", "hydro", "habitat",
-                "iato", "ibis", "icona", "idolo", "idra", "iella", "igloo", "ikebana", "imene", "indaco", "indice", "infido", "infra", "intimo", "iodio", "ipnosi", "iride", "irto", "islam", "istmo",
-                "jazz", "jeep", "jeans", "jet", "jolly", "junior", "judo", "jack", "jelly", "joule",
-                "karma", "kebab", "kendo", "kenya", "kimono", "kiwi", "koala", "ketchup", "kayak", "khmer",
-                "labbra", "ladro", "lago", "lama", "lardo", "larva", "latte", "lauto", "lava", "lento", "lesto", "leva", "libro", "lido", "limbo", "lince", "lista", "litro", "lotta", "luna",
-                "madre", "magma", "magro", "malto", "mamma", "manto", "marmo", "marzo", "massa", "matto", "mega", "mela", "mesto", "metro", "mezzo", "miglio", "mille", "mirto", "misto", "mondo",
-                "nafta", "nano", "nave", "nebbia", "nembo", "nero", "nervo", "nesso", "netto", "neve", "nido", "ninfa", "nitro", "nobile", "nocca", "nonno", "norma", "nosco", "nozze", "nulla",
-                "ocra", "olio", "oltre", "omero", "onere", "onda", "onore", "opaco", "opera", "opimo", "orale", "orbo", "orco", "orda", "orlo", "orma", "orso", "osso", "ovale", "ovile",
-                "padre", "palco", "palma", "palo", "panca", "pane", "panno", "parco", "parte", "parto", "pasta", "patto", "pausa", "peste", "pesto", "petto", "picco", "piega", "pino", "pizzo",
-                "quadro", "qualche", "quanto", "quasi", "quercia", "questo", "quindi", "quinto", "quota", "quorum",
-                "ramo", "rana", "rango", "raro", "ratto", "reale", "regno", "renio", "retro", "retta", "ricco", "ride", "rigo", "rima", "rito", "rocca", "rogo", "ronda", "rosso", "rotta",
-                "sabbia", "sacco", "sadico", "saggio", "sala", "saldo", "salmo", "salto", "sano", "santo", "sarmo", "sasso", "scafo", "scala", "scena", "schivo", "scolo", "scudo", "secco", "seme",
-                "tacca", "taccio", "taci", "tale", "tanto", "tardi", "tasto", "tazza", "tegola", "telo", "tempo", "tendo", "tergo", "terso", "tesa", "tesi", "tesoro", "testo", "tetro", "tifo",
-                "ufo", "uggia", "ugola", "ulivo", "ulna", "ultra", "umido", "uncino", "unghia", "unico", "unto", "uopo", "uovo", "urlo", "urna", "usanza", "uscio", "uso", "utero", "utile",
-                "vado", "vago", "vale", "vallo", "vanga", "vanto", "vario", "vaso", "vasto", "vate", "vedo", "vela", "vello", "velo", "vena", "vento", "verbo", "verga", "verso", "vetta",
-                "wagon", "walzer", "wasabi", "water", "wafer", "web", "wifi", "western", "weekend", "whisky",
-                "xeno", "xenon", "xylem", "xilene", "xanto",
-                "yoga", "yeti", "yacht", "yogurt", "yen",
-                "zanna", "zampa", "zappa", "zelo", "zero", "zeta", "zinco", "zitto", "zolfo", "zucca"
-            ],
-            3: [
-                "abaco", "abilità", "abisso", "abitare", "abolire", "abrogo", "abside", "abusivo", "acacia", "accadere", "accento", "accesso", "accolto", "acerbo", "acetone", "acino", "acume", "adagio", "adeguato", "adempio",
-                "baciare", "badante", "bagaglio", "bagordo", "balcone", "baldoria", "baleno", "ballare", "balzano", "bambino", "bancario", "bandiera", "baobab", "baracca", "baraonda", "baratto", "barbiere", "baritono", "barrato", "barriera",
-                "cabina", "cacciare", "cadenza", "cadmio", "caduta", "caffeine", "caimano", "calcolo", "calmante", "caloria", "cambiare", "camerata", "camicia", "camino", "campagna", "campione", "canaglia", "canapa", "canario", "candela",
-                "dacapo", "dadaista", "dalmata", "dannoso", "davanti", "davvero", "decadere", "decennio", "decidere", "decimale", "deciso", "dedicare", "dedurre", "defecare", "deferire", "defunto", "degente", "delegato", "delicato", "delitto",
-                "ebano", "ebraico", "ebrezza", "eccedere", "eccesso", "eccetera", "eclisse", "eclittica", "economico", "ecosistema", "edificio", "editore", "educato", "effetto", "efficace", "egemonia", "egoismo", "elaborare", "elargire", "eleggere",
-                "fabbrica", "fachiro", "facile", "fagiano", "fagotto", "fallace", "fallire", "falsità", "famoso", "fanale", "fanciullo", "fandonia", "fantasma", "fanteria", "farfalla", "farmacia", "fascino", "fatale", "fattore", "fattura",
-                "gagliardo", "galante", "galassia", "galera", "galleria", "galletto", "gallina", "galoppare", "gambero", "garantire", "garanzia", "garofano", "gasolio", "gassoso", "gastrico", "gavetta", "gazebo", "gazzetta", "gelato", "geloso",
-                "habitat", "handicap", "hardware", "hockey", "holding", "homepage", "hotel", "hamburger", "herpes", "hovercraft",
-                "iceberg", "iconico", "ideale", "identico", "idiota", "idolatra", "idraulico", "idrogeno", "idrometro", "ignaro", "ignobile", "ignorare", "ignoto", "ilare", "illogico", "illuminare", "illudere", "illuso", "illustre", "imbattere",
-                "jacuzzi", "jellato", "jersey", "jogging", "jolly", "jonquil", "joviale", "jukebox", "junior", "juventus",
-                "karate", "kebab", "kefir", "ketchup", "kimono", "kindergarten", "kingston", "kirigami", "kitsch", "kiwi",
-                "laboratorio", "laburno", "lacerto", "laconia", "lacrima", "lacuna", "ladino", "ladrone", "laguna", "lamento", "lampada", "lampione", "lampone", "lanciare", "languido", "lanterna", "lapillo", "lardoso", "laringe", "lasagna",
-                "macabro", "macchina", "maceria", "macigno", "macrò", "madama", "madonna", "maestro", "mafia", "magenta", "maggese", "maggiore", "maglione", "magnete", "magnolia", "magro", "mahonia", "malattia", "maldestro", "malefico",
-                "nacchera", "naftalina", "nascente", "nascita", "nascosto", "nasello", "nastro", "natale", "natante", "nativo", "natura", "naufrago", "nautica", "navale", "navata", "nazione", "neanche", "nebbia", "nebuloso", "necessario",
-                "obbligo", "obliquo", "oblò", "obolo", "obsoleto", "oceano", "occulto", "occupare", "oculato", "oculista", "odissea", "odorare", "offrire", "oggetto", "oleoso", "olfatto", "olifante", "olimpico", "oltraggio", "omaggio",
-                "pacifico", "padella", "padrino", "padrone", "pagano", "pagare", "pagina", "pagliaccio", "pagoda", "paiolo", "palazzo", "palese", "palestra", "pallido", "pallone", "palmento", "palpare", "palude", "pancetta", "pancreas",
-                "quaderno", "quadrato", "quadretto", "quadriga", "quadriglia", "quadro", "qualcosa", "qualcuno", "qualità", "qualsiasi", "quantico", "quantità", "quaranta", "quaresima", "quartiere", "quarto", "quattrino", "quercia", "quesito", "questione",
-                "raccolto", "racconto", "rachide", "radicale", "radice", "radioso", "raduno", "rafano", "raffiche", "raffinare", "ragazzo", "ragione", "ragnetto", "rampante", "rampino", "rancido", "rancura", "randagio", "rapace", "rapida",
-                "sabato", "sabbia", "saccente", "sacchetto", "sacco", "sacrale", "sacrificio", "sadico", "safari", "sagace", "sagacia", "saggiare", "sagoma", "sala", "salame", "salario", "salasso", "salato", "salice", "saliente",
-                "tabacco", "tabella", "tablino", "tabù", "taccuino", "tacere", "tacito", "tagliere", "tagliolo", "talamo", "talento", "talete", "talismano", "tallone", "tamarindo", "tamburo", "tanaceto", "tanfo", "tangente", "tanica",
-                "ubertà", "ubicare", "ubidire", "ubiquità", "ubriaco", "uccello", "ucraino", "udibile", "udienza", "udire", "ufficiale", "ufficio", "ugello", "uggia", "uguale", "ulcera", "ulivo", "ultimare", "ulula", "umano",
-                "vacante", "vacanza", "vaccino", "vacilla", "vacuità", "vagare", "vagone", "valente", "valere", "valido", "vallata", "valletto", "valore", "valuta", "vampata", "vampiro", "vaniglia", "vanità", "vapore", "varcare",
-                "wafer", "walzer", "warrant", "weekend", "welfare", "western", "whisky", "widget", "windsurf", "workshop",
-                "xenia", "xenofobo", "xerocopia", "xilema", "xilofono",
-                "yankee", "yogurt", "yucca", "yuppie", "yuppy",
-                "zaffata", "zaffiro", "zainetto", "zampa", "zampillo", "zampogna", "zanzara", "zappare", "zattera", "zavorra"
-            ],
-            4: [
-                "abilità", "abilitare", "abitacolo", "abitatore", "abitazione", "abituale", "abituare", "abituato", "abitudinario", "abolire", "abolizione", "aborigeno", "abortire", "abrasivo", "abrogare", "accademia", "accademico", "accelerare", "accentuare", "accessibile",
-                "baccanale", "baccelliere", "badilante", "bagnarola", "baionetta", "balaustra", "balconate", "baldacchino", "ballerino", "balsamico", "bancarotta", "bandistero", "baraonda", "baritono", "barometro", "baronetto", "barroccio", "basilisco", "battelliere", "battistero",
-                "cabotaggio", "cacciatore", "cachessia", "cadavere", "caffeina", "caffettiera", "calabrone", "calamaro", "calamita", "calamità", "calcolabile", "calcolatore", "calendario", "caliginoso", "calligrafo", "calorifero", "calunniare", "camaleonte", "cameriere", "camerino",
-                "damerino", "dannazione", "darsena", "datazione", "deambulare", "debellare", "debilitare", "decadente", "decaedro", "decapitare", "decathlon", "decenale", "decimetro", "decidere", "decisione", "decimale", "declarare", "dedicare", "defalcare", "defenestrare",
-                "ebollizione", "ebrietà", "ebullo", "ecuadoregno", "edificare", "edificio", "editoriale", "educativo", "effervescenza", "efficacia", "efficiente", "elaborare", "elargizione", "elasticità", "elementare", "elemosinare", "elicottero", "eliminare", "eloquente", "elucubrare",
-                "fabbisogno", "fabricare", "facoltativo", "facoltoso", "faderale", "fagocitare", "falconiere", "fallimento", "falsificare", "familiarità", "fanfarone", "fantastico", "farabutti", "farfalleggiare", "farinaceo", "farmacista", "fascinazione", "fastigiato", "fatalità", "fattoriale",
-                "galattico", "galleggiante", "galvanizzare", "gamberetto", "garantire", "garanzia", "garibaldino", "gasometro", "generatore", "generazioni", "generosità", "genetica", "genetliaco", "gengivale", "genitore", "genocidio", "genuflesso", "geografia", "geometria", "geopolitica",
-                "hackerare", "happening", "hardware", "hashtag", "hemicrania", "hegelismo", "hindenburg", "hobbysta", "holliday", "holografico",
-                "iatrogeno", "ibrido", "idealista", "idilliaco", "idiomatico", "idiosincrasico", "idiozia", "idolatria", "idrogeno", "idrorepellente", "idrotermale", "ignifugo", "ignoranza", "illegalità", "illegibile", "illegittimo", "illetterato", "illuminare", "illusione", "illustrare",
-                "jazzistico", "jeanseria", "jiujitsu", "jollinesso", "joystick", "jugoslavo", "jumpstyle", "jurassico", "jurepuntare", "juta",
-                "kafkiano", "kamasutra", "kameraderie", "kantiano", "karmelitano", "kashmiriano", "katiuscia", "kendokista", "keynesiano", "kibbutzkim",
-                "laboratorio", "laborioso", "labradorite", "laburismo", "lacerare", "laceratore", "lacrimale", "lacrimevole", "lacrimoso", "ladronaggio", "laghetto", "lagrimoso", "lamentoso", "lapalissiano", "lapidario", "laringeo", "larghezza", "largizione", "larvatura", "latifoglie",
-                "macchinario", "macchinista", "macellare", "machitavelli", "macilento", "madornale", "madreperla", "maestrale", "magazzino", "magistrato", "magnetizzare", "magnificare", "magnolia", "magramente", "mahleriano", "maialetto", "maionese", "malamente", "malaticcio", "maldicenza",
-                "nazionale", "natalità", "naturalista", "naturalità", "naturalistico", "naturalizzare", "naufragare", "navigabile", "navigatore", "navigazione", "nazareno", "nazionalismo", "nazionalità", "nazionalistico", "nebbioso", "nebulosità", "necessario", "necessità", "necrofilo", "necrologi",
-                "obbediente", "obbedienza", "obbligare", "obbligatorio", "obbiettivo", "obesità", "obiettare", "obiettivo", "oblazione", "obliterare", "oblungo", "obnubilare", "obrobrio", "occasionale", "occasione", "occidentale", "occidente", "occipitale", "occlusive", "occultista",
-                "pacatezza", "pacchiano", "pacifismo", "pacificare", "padellata", "padellone", "padroneggiar", "padroneggiare", "paganesimo", "pagamento", "paginazione", "paladino", "palatale", "palatalizzare", "palatino", "palcoscenico", "paleocristiano", "paleologo", "paleontologia", "paleontologico",
-                "quadrangolo", "quadernario", "quadrangolare", "quadrantale", "quadrante", "quadratini", "quadratura", "quadricipite", "quadrifoglio", "quadrilatero", "quadrilioni", "quadrimotore", "quadrireattore", "quadrireme", "quadrisillabo", "quadrivio", "quadrumano", "quadrupede", "qualificare", "qualitativo",
-                "raccontare", "raccontarsi", "raccontino", "racemoso", "rachitismo", "racimolare", "radicamento", "radicalismo", "radicante", "radicare", "radichetta", "radioattivo", "radiofonico", "radiografia", "radiologico", "radiopaco", "radiosità", "radioterapia", "radunare", "raffazzonare",
-                "sabadiglia", "sabatino", "sabbiatura", "sabotaggio", "saccaridi", "saccarifero", "saccarimetro", "saccarosio", "saccheggiano", "sacerdotale", "sacramentale", "sacramento", "sacrario", "sacrestia", "sacrificare", "sacrificio", "sadduceo", "saettante", "saettare", "saettatore",
-                "tabulare", "tacchinella", "tachinaro", "taciturno", "tagliatelle", "tagliatore", "talentuoso", "talismano", "tallonite", "tamarindo", "tambureggiante", "tamburello", "tamburino", "tangenziale", "tantalico", "tapirulan", "tapparella", "tarantella", "tarantola", "tariffario",
-                "ubbidienza", "ubertosissimo", "ubicabile", "ubicazione", "ubriacatura", "uccellatura", "uccelliera", "uditorato", "uditorio", "ufficiale", "ufficioso", "uguaglianza", "ugualitario", "ulcerativo", "ulceroso", "ulteriorità", "ultimativo", "ultimatore", "ultimazione", "ultimogenitura",
-                "vacanziero", "vaccarella", "vaccinabile", "vaccinare", "vaccinazione", "vacillante", "vacillare", "vacuità", "vagabondare", "vagabondo", "vagamente", "vagonetto", "vaiolare", "vaioloso", "valicare", "validità", "valligiano", "valoroso", "valutabile", "valutario",
-                "walhalla", "walkabout", "walkman", "wallaby", "wallaroo", "wallpaper", "wampanoag", "wanderlust", "wannabe", "wargaming",
-                "xenofilia", "xenofobo", "xerofilo", "xilocaina", "xiloestesia",
-                "yachtista", "yahooligano", "yamakasi", "yelokopteri", "yemenita",
-                "zabardone", "zabaione", "zacchero", "zaffatore", "zagaglia", "zampettare", "zampogna", "zarevič", "zazzera", "zazzeruto"
-            ],
-            5: [
-                "abbacinamento", "abbacchiatura", "abbarbagliare", "abbaruffare", "abbreviazione", "abbronzatissimo", "abbrustolimento", "abdicazione", "aberrazione", "abilitazione", "abiogenesi", "abitabilità", "abnegazione", "abominazione", "aboriginalità", "aborritissimo", "abrasivamente", "abrogazione", "accanimento", "accaparramento",
-                "bacchiatura", "bacchettatura", "baccellierato", "bacchettoneria", "bacchidione", "bachicoltore", "baciamano", "bagatellizzare", "bagnarola", "balanopotamo", "balbettamento", "baldacchino", "baleniera", "balenottera", "ballabilissimo", "ballottaggio", "baloginante", "bambagiata", "bambagiata", "bambagione",
-                "cabbalisticamente", "cacciatorpediniere", "cadaverosamente", "caffeografico", "calcolabilità", "caleidoscopico", "caliginoso", "calligrafico", "calorosamente", "calunniabile", "camaleonticamente", "camaleontico", "camerieristico", "camminatore", "camomilliera", "campanellinare", "campanilismo", "campioncino", "cannibalismo", "canonizzazione",
-                "dabbenaggine", "dafnefillacee", "dagherrotipia", "damigellina", "dannabilità", "dappocaggine", "dapprincipio", "dardanellico", "dattiloscritto", "debilitazione", "decapitazione", "decifrazione", "decimiliardale", "decomposizione", "decorativamente", "decolorazione", "dediritizzatore", "deduttivamente", "defenestrazione", "degenerazione",
-                "ebdomadario", "ebetitudine", "ebriosamente", "elefantiaco", "elementarietà", "elettrificazione", "elettroluminescenza", "elettromagnetico", "eliminazione", "eloquentissimo", "emancipazione", "empatizzare", "entomologia", "entusiasmare", "equanimemente", "equinoziale", "equipollente", "ergonomicamente", "ermeneutico", "erogazione",
-                "facoltativamente", "falsicabilità", "fantacalcio", "farmacologico", "farraginosità", "fascinazione", "faticabilissimo", "favoreggiamento", "fecondabilità", "fedelissimo", "fenomenologicamente", "feracissimo", "ferriferazione", "festeggiamento", "festosamente", "fiancheggiamento", "fiammeggiamento", "fiammeggiante", "filologicamente", "filosofeggiare",
-                "galleggiabilità", "galvanizzazione", "gasificazione", "gelatinizzare", "generalissimo", "generalizzabile", "generosamente", "genitorialità", "geologicamente", "geometricamente", "geopoliticamente", "gerarchicamente", "germogliamento", "gesticolare", "ghiottoneria", "giallognoletto", "giganteggiamento", "ginnasticamente", "giocherellare", "giocosamente",
-                "harmonicamente", "hegalianeggiante", "homeopaticamente", "hostilizzazione", "humidificatore", "humanizzazione", "hialinizzazione", "hackeraggio", "hepatologicamente", "hereditarietà",
-                "idealisticamente", "ideologizzabile", "idiosincrasia", "idiotizzazione", "idraulicamente", "igienizzazione", "illuminazione", "illogicamente", "illustrazione", "imbacuccamento", "imbaldanzimento", "imbarcazione", "imbellettatura", "imbevimento", "imbiancatura", "imbonimento", "imbrogliatissimo", "imburratore", "immagazzinamento", "immaginabile",
-                "jindaishinpo", "jesuiticamente", "jocundamente", "joculatorio", "jumbojetistico", "judaizzamento", "jazzisticamente", "japponeggiante", "jugoslavizzare", "junghianismo",
-                "kafkianamente", "kaleidoscopicamente", "kamikazzeggiare", "kamasutriano", "karaokeggiare", "karateisticamente", "katakanaizzato", "kennedyano", "keynesianamente", "kilometraggio",
-                "laboratoristico", "lacerabilità", "lacrimevolmente", "laicizzazione", "lambiccamento", "lamentevolmente", "lanterneggiamento", "lapidificazione", "laringectomia", "larmoyante", "lateralizzazione", "latinizzazione", "laudabilmente", "lavabilità", "legittimazione", "leguminaceo", "liberalizzazione", "librettistico", "limitabilità", "limitatamente",
-                "macchinazione", "macchinistico", "macedonicamente", "macerabilità", "machiavellisticamente", "magistralmente", "magnificazione", "maleducazione", "malinconicamente", "malintenzionatamente", "manomissione", "manufatto", "maravigliosamente", "maravigliosissimo", "marginale", "marionettistico", "matematicamente", "materializzazione", "maternizzazione", "matrimoniale",
-                "navigabilità", "navigazione", "nazionalismo", "necessariamente", "necrofobico", "nefandamente", "negligentemente", "negoziatrice", "negoziazione", "neopentecostalismo", "neurologicamente", "neutralizzazione", "nibelungicamente", "nichilismo", "nicotinizzazione", "nietzschianamente", "nientificazione", "nietzschiano", "nitrocellulosico", "nobilissimamente",
-                "obesogenico", "obiettivazione", "obliquamente", "obnubilazione", "occultamento", "occultisticamente", "oculatamente", "odontostomatologia", "offendibilissimo", "oleografico", "oligarchizzazione", "olograficamente", "omeopaticamente", "omeopatico", "omologazione", "ontologicamente", "operativamente", "operosamente", "opificiabilità", "opportunamente",
-                "pacificazione", "padroneggiabile", "paganeggiamento", "paleocristiano", "paleograficamente", "paleontologico", "paleopatologia", "palliativo", "palpeggiamento", "pancreaticopatico", "panettoneria", "panificazione", "panoramicamente", "pantograficamente", "paolottismo", "papabile", "papaveraceo", "parabancaria", "paradigmaticamente", "paradisiaco",
-                "quadrangolarità", "quadrangolazione", "quadrellatura", "quadricolore", "quadriennale", "quadrifoglio", "quadrifonicamente", "quadrilaterale", "quadrilaterato", "quadrilaterazione", "quadrimestrale", "quadrimensile", "quadripartito", "quadrireattore", "quadrisettoriale", "quadrisillabico", "quadrisono", "qualificatamente", "qualitativamente", "quantificazione",
-                "raccomandazione", "raccontabilità", "racimolamento", "radicalizzazione", "radicalizzatore", "radiolocalizzazione", "radionavigazione", "radiotelefonico", "raffazzonamento", "ragionevole", "ragionevolezza", "rallegramento", "ramificazione", "rammemorare", "randomizzazione", "rapsodiabile", "rapsodicità", "rarificazione", "raschiettamento", "rateizzabile",
-                "sabatonizzare", "sacramentalmente", "sacramentalizzare", "sacrilegamente", "sacrificabilità", "sacrificabilmente", "sacrificatore", "sacrilegamente", "sacrilegioso", "salutevolmente",
-                "tacchineggiante", "tachimetrico", "tagliuzzamento", "talamoencefalico", "tambureggiante", "tardivamente", "teatralizzazione", "tediosaggine", "tegumentazione", "telecomanderò", "telematizzazione", "teleologicamente", "telepaticamente", "teleradiografia", "temperamentale",
-                "ubbidientemente", "ubicazione", "ubiquitariamente", "ubiquità", "uccellagione", "udibilità", "udometrico", "ufficialità", "ufficiosamente", "uguagliamento", "ulcerazione", "ulteriormente", "ultramicroscopico", "ultravioletto", "umanamente", "umanitario", "umilissimamente", "umiliazione", "unanimemente", "unificazione",
-                "vagabondaggio", "vagolamento", "valetudinario", "validazione", "valorizzazione", "valutazione", "vanagloriare", "vaniloquio", "vaporizzazione", "variabilità", "variazione", "vascolarizzazione", "vasodilatazione", "vegetariano", "vellicare", "vellutazione", "velocizzare", "venerazione", "ventilazione", "verbalizzazione",
-                "walchirichico", "walkie-talkie", "waltzeristica", "washingtoniano", "wellingtonia", "wendersiano", "westernizzazione", "whatsappabile", "whiskissimo", "wiccanoide",
-                "xenofobicamente", "xenoglossia", "xerografico", "xilografico", "xilofonico",
-                "yahtzee", "yemenizzazione", "yerbamateizzazione", "yoghurtificazione", "yuppizzazione",
-                "zabaglionetico", "zaffardoso", "zapateado", "zappettatura", "zarathustriano", "zerbinatura", "zigrinatura", "zingarescamente", "zooantropologia", "zoologicamente"
-            ],
-            5: [
-                "abbacinamento", "abbacchiatura", "abbarbagliare", "abbaruffare", "abbreviazione", "abbronzatissimo", "abbrustolimento", "abdicazione", "aberrazione", "abilitazione", "abiogenesi", "abitabilità", "abnegazione", "abominazione", "aboriginalità", "aborritissimo", "abrasivamente", "abrogazione", "accanimento", "accaparramento",
-                "bacchiatura", "bacchettatura", "baccellierato", "bacchettoneria", "bacchidione", "bachicoltore", "baciamano", "bagatellizzare", "bagnarola", "balanopotamo", "balbettamento", "baldacchino", "baleniera", "balenottera", "ballabilissimo", "ballottaggio", "baloginante", "bambagiata", "bambagiata", "bambagione",
-                "cabbalisticamente", "cacciatorpediniere", "cadaverosamente", "caffeografico", "calcolabilità", "caleidoscopico", "caliginoso", "calligrafico", "calorosamente", "calunniabile", "camaleonticamente", "camaleontico", "camerieristico", "camminatore", "camomilliera", "campanellinare", "campanilismo", "campioncino", "cannibalismo", "canonizzazione",
-                "dabbenaggine", "dafnefillacee", "dagherrotipia", "damigellina", "dannabilità", "dappocaggine", "dapprincipio", "dardanellico", "dattiloscritto", "debilitazione", "decapitazione", "decifrazione", "decimiliardale", "decomposizione", "decorativamente", "decolorazione", "dediritizzatore", "deduttivamente", "defenestrazione", "degenerazione",
-                "ebdomadario", "ebetitudine", "ebriosamente", "elefantiaco", "elementarietà", "elettrificazione", "elettroluminescenza", "elettromagnetico", "eliminazione", "eloquentissimo", "emancipazione", "empatizzare", "entomologia", "entusiasmare", "equanimemente", "equinoziale", "equipollente", "ergonomicamente", "ermeneutico", "erogazione",
-                "facoltativamente", "falsicabilità", "fantacalcio", "farmacologico", "farraginosità", "fascinazione", "faticabilissimo", "favoreggiamento", "fecondabilità", "fedelissimo", "fenomenologicamente", "feracissimo", "ferriferazione", "festeggiamento", "festosamente", "fiancheggiamento", "fiammeggiamento", "fiammeggiante", "filologicamente", "filosofeggiare",
-                "galleggiabilità", "galvanizzazione", "gasificazione", "gelatinizzare", "generalissimo", "generalizzabile", "generosamente", "genitorialità", "geologicamente", "geometricamente", "geopoliticamente", "gerarchicamente", "germogliamento", "gesticolare", "ghiottoneria", "giallognoletto", "giganteggiamento", "ginnasticamente", "giocherellare", "giocosamente",
-                "harmonicamente", "hegalianeggiante", "homeopaticamente", "hostilizzazione", "humidificatore", "humanizzazione", "hialinizzazione", "hackeraggio", "hepatologicamente", "hereditarietà",
-                "idealisticamente", "ideologizzabile", "idiosincrasia", "idiotizzazione", "idraulicamente", "igienizzazione", "illuminazione", "illogicamente", "illustrazione", "imbacuccamento", "imbaldanzimento", "imbarcazione", "imbellettatura", "imbevimento", "imbiancatura", "imbonimento", "imbrogliatissimo", "imburratore", "immagazzinamento", "immaginabile",
-                "jindaishinpo", "jesuiticamente", "jocundamente", "joculatorio", "jumbojetistico", "judaizzamento", "jazzisticamente", "japponeggiante", "jugoslavizzare", "junghianismo",
-                "kafkianamente", "kaleidoscopicamente", "kamikazzeggiare", "kamasutriano", "karaokeggiare", "karateisticamente", "katakanaizzato", "kennedyano", "keynesianamente", "kilometraggio",
-                "laboratoristico", "lacerabilità", "lacrimevolmente", "laicizzazione", "lambiccamento", "lamentevolmente", "lanterneggiamento", "lapidificazione", "laringectomia", "larmoyante", "lateralizzazione", "latinizzazione", "laudabilmente", "lavabilità", "legittimazione", "leguminaceo", "liberalizzazione", "librettistico", "limitabilità", "limitatamente",
-                "macchinazione", "macchinistico", "macedonicamente", "macerabilità", "machiavellisticamente", "magistralmente", "magnificazione", "maleducazione", "malinconicamente", "malintenzionatamente", "manomissione", "manufatto", "maravigliosamente", "maravigliosissimo", "marginale", "marionettistico", "matematicamente", "materializzazione", "maternizzazione", "matrimoniale",
-                "navigabilità", "navigazione", "nazionalismo", "necessariamente", "necrofobico", "nefandamente", "negligentemente", "negoziatrice", "negoziazione", "neopentecostalismo", "neurologicamente", "neutralizzazione", "nibelungicamente", "nichilismo", "nicotinizzazione", "nietzschianamente", "nientificazione", "nietzschiano", "nitrocellulosico", "nobilissimamente",
-                "obesogenico", "obiettivazione", "obliquamente", "obnubilazione", "occultamento", "occultisticamente", "oculatamente", "odontostomatologia", "offendibilissimo", "oleografico", "oligarchizzazione", "olograficamente", "omeopaticamente", "omeopatico", "omologazione", "ontologicamente", "operativamente", "operosamente", "opificiabilità", "opportunamente",
-                "pacificazione", "padroneggiabile", "paganeggiamento", "paleocristiano", "paleograficamente", "paleontologico", "paleopatologia", "palliativo", "palpeggiamento", "pancreaticopatico", "panettoneria", "panificazione", "panoramicamente", "pantograficamente", "paolottismo", "papabile", "papaveraceo", "parabancaria", "paradigmaticamente", "paradisiaco",
-                "quadrangolarità", "quadrangolazione", "quadrellatura", "quadricolore", "quadriennale", "quadrifoglio", "quadrifonicamente", "quadrilaterale", "quadrilaterato", "quadrilaterazione", "quadrimestrale", "quadrimensile", "quadripartito", "quadrireattore", "quadrisettoriale", "quadrisillabico", "quadrisono", "qualificatamente", "qualitativamente", "quantificazione",
-                "raccomandazione", "raccontabilità", "racimolamento", "radicalizzazione", "radicalizzatore", "radiolocalizzazione", "radionavigazione", "radiotelefonico", "raffazzonamento", "ragionevole", "ragionevolezza", "rallegramento", "ramificazione", "rammemorare", "randomizzazione", "rapsodiabile", "rapsodicità", "rarificazione", "raschiettamento", "rateizzabile",
-                "sabatonizzare", "sacramentalmente", "sacramentalizzare", "sacrilegamente", "sacrificabilità", "sacrificabilmente", "sacrificatore", "sacrilegamente", "sacrilegioso", "salutevolmente",
-                "tacchineggiante", "tachimetrico", "tagliuzzamento", "talamoencefalico", "tambureggiante", "tardivamente", "teatralizzazione", "tediosaggine", "tegumentazione", "telecomanderò", "telematizzazione", "teleologicamente", "telepaticamente", "teleradiografia", "temperamentale",
-                "ubbidientemente", "ubicazione", "ubiquitariamente", "ubiquità", "uccellagione", "udibilità", "udometrico", "ufficialità", "ufficiosamente", "uguagliamento", "ulcerazione", "ulteriormente", "ultramicroscopico", "ultravioletto", "umanamente", "umanitario", "umilissimamente", "umiliazione", "unanimemente", "unificazione",
-                "vagabondaggio", "vagolamento", "valetudinario", "validazione", "valorizzazione", "valutazione", "vanagloriare", "vaniloquio", "vaporizzazione", "variabilità", "variazione", "vascolarizzazione", "vasodilatazione", "vegetariano", "vellicare", "vellutazione", "velocizzare", "venerazione", "ventilazione", "verbalizzazione",
-                "walchirichico", "walkie-talkie", "waltzeristica", "washingtoniano", "wellingtonia", "wendersiano", "westernizzazione", "whatsappabile", "whiskissimo", "wiccanoide",
-                "xenofobicamente", "xenoglossia", "xerografico", "xilografico", "xilofonico",
-                "yahtzee", "yemenizzazione", "yerbamateizzazione", "yoghurtificazione", "yuppizzazione",
-                "zabaglionetico", "zaffardoso", "zapateado", "zappettatura", "zarathustriano", "zerbinatura", "zigrinatura", "zingarescamente", "zooantropologia", "zoologicamente"
-            ]
+            tema_labels: {
+                tutti:    "🌈 Tutti i temi",
+                animali:  "🐾 Animali",
+                cibo:     "🍎 Cibo",
+                casa:     "🏠 Casa",
+                corpo:    "🧍 Corpo",
+                natura:   "🌿 Natura",
+                scuola:   "📚 Scuola",
+                vestiti:  "👕 Vestiti",
+                veicoli:  "🚗 Veicoli",
+                giochi:   "⚽ Giochi",
+                famiglia: "👨‍👩‍👧 Famiglia"
+            },
+            animali: {
+                2: ["cane","gatto","rana","orso","lupo","volpe","capra","topo","oca",
+                    "cervo","tigre","toro","pollo","gufo","falco","corvo","mucca","zebra",
+                    "merlo","cigno","riccio","lepre","mosca","trota","porco"],
+                3: ["cavallo","coniglio","delfino","farfalla","aquila","pecora","cicala",
+                    "asino","leone","pavone","formica","cicogna","gallina","lucciola",
+                    "castoro","serpente","pinguino","criceto","canarino","medusa"],
+                4: ["elefante","tartaruga","coccodrillo","lucertola","coccinella",
+                    "scoiattolo","calamaro","tarantola","pappagallo","pipistrello",
+                    "salamandra","scarafaggio"],
+                5: ["rinoceronte","ippopotamo","camaleonte","orangotango","coleottero",
+                    "pterodattilo"]
+            },
+            cibo: {
+                2: ["pane","latte","mela","torta","pasta","pizza","riso","pero","fico",
+                    "sale","miele","burro","olio","carne","pesce","zuppa","noce","mango",
+                    "succo","uova"],
+                3: ["banana","fragola","limone","arancia","gelato","biscotto","formaggio",
+                    "patata","carota","zucchero","castagna","lampone","piadina","minestra",
+                    "ciambella","focaccia","pistacchio","fagioli","spinaci","ciliegia"],
+                4: ["pomodoro","mandarino","melanzana","cioccolato","mozzarella",
+                    "tortellini","parmigiano","cavolfiore","maionese","carbonara",
+                    "cotoletta","cannelloni"],
+                5: ["cioccolatino","peperoncino","prosciuttino","salmoriglio","giardiniera"]
+            },
+            casa: {
+                2: ["porta","letto","sedia","tetto","muro","vaso","bagno","scala",
+                    "chiave","stanza","forno","frigo","specchio","presa","piano",
+                    "tenda","stufa","secchio","panca","tasto"],
+                3: ["tavolo","cucina","coperta","divano","finestra","armadio","poltrona",
+                    "terrazzo","balcone","cantina","giardino","tappeto","mensola",
+                    "cassetto","bollitore","cucchiaio","pattumiera"],
+                4: ["comodino","lavandino","lampadina","lavatrice","candelabro",
+                    "portafinestra","cassapanca","materasso"],
+                5: ["frigorifero","aspirapolvere","lavastoviglie","televisore","calorifero"]
+            },
+            corpo: {
+                2: ["mano","piede","naso","bocca","dito","testa","collo","spalla",
+                    "braccio","gomito","ginocchio","schiena","guancia","mento","orecchio"],
+                3: ["capelli","caviglia","costola","stomaco","polpaccio","ascella",
+                    "forchetta","palpebra","sopracciglio","mandibola"],
+                4: ["ginocchiera","polpastrello","sopracciglio","palpebre"],
+                5: ["appendicite","articolazione","circolazione","respirazione"]
+            },
+            natura: {
+                2: ["sole","luna","mare","lago","monte","bosco","fiume","neve",
+                    "vento","fiore","erba","nube","rocca","sabbia","foglia","pioggia"],
+                3: ["cielo","collina","foresta","montagna","vulcano","deserto",
+                    "ghiaccio","arcobaleno","primavera","tempesta","cascata","prateria"],
+                4: ["temporale","piantagione","terremoto","primavera","atmosfera",
+                    "orizzonte","crepuscolo"],
+                5: ["precipitazione","terremoto","biodiversita","meteorologia",
+                    "inquinamento"]
+            },
+            scuola: {
+                2: ["penna","libro","banco","carta","gomma","riga","classe","porta",
+                    "gesso","zaino","colla","metro","compasso"],
+                3: ["matita","quaderno","maestra","lavagna","compito","ricreazione",
+                    "disegno","racconto","biblioteca","cartella","righello","squadra"],
+                4: ["calcolatrice","matematica","grammatica","geometria","dizionario",
+                    "insegnante","illustrazione","laboratorio"],
+                5: ["enciclopedia","informatica","interrogazione","ricreazione",
+                    "collaborazione"]
+            },
+            vestiti: {
+                2: ["gonna","scarpa","borsa","guanto","cintura","calza","maglia",
+                    "camicia","cravatta","borsetta"],
+                3: ["giacca","pantalone","cappello","stivale","sandalo","maglione",
+                    "felpa","cappotto","grembiule","pigiama"],
+                4: ["impermeabile","calzamaglia","canottiera","paletot","sottoveste",
+                    "bretelle","cappellino"],
+                5: ["abbigliamento","impermeabile","collant"]
+            },
+            veicoli: {
+                2: ["auto","bici","treno","barca","moto","tram","aereo","nave",
+                    "jeep","furgone"],
+                3: ["autobus","elicottero","motociclo","camion","trattore","scooter",
+                    "veliero","vaporetto","traghetto"],
+                4: ["automobile","motocicletta","locomotiva","sottomarino","astronave",
+                    "elicottero","portaerei"],
+                5: ["motociclismo","automobilismo","elicottero"]
+            },
+            giochi: {
+                2: ["palla","dado","carte","nodo","corsa","salto","gioco","dama",
+                    "mosca","gara","flauto","tromba"],
+                3: ["pallone","bicicletta","bambola","puzzle","scivolo","altalena",
+                    "aquilone","filastrocca","chitarra","acrobata"],
+                4: ["videogioco","costruzioni","tombola","carnevale","pallanuoto",
+                    "calcio","pallavolo"],
+                5: ["filastrocca","girotondo","acrobatica","campionato"]
+            },
+            famiglia: {
+                2: ["mamma","papà","nonno","nonna","figlio","figlia","zio","zia",
+                    "babbo","nipote","cugino","cuginа"],
+                3: ["fratello","sorella","bisnonno","padrino","madrina","famiglia",
+                    "cognato","cognata","parente","gemelli"],
+                4: ["bisnonno","bisnonna","pronipote","capofamiglia"],
+                5: ["pronipote","capofamiglia","anniversario","battesimo"]
+            }
         };
+
 
         // --- VARIABILI GLOBALI ---
         let currentCompWord = '';
@@ -573,6 +552,7 @@
         const navButtons = document.querySelectorAll('nav button');
 
         // Comprensione
+        const compThemeSelect = document.getElementById('compThemeSelect');
         const compSyllableSelect = document.getElementById('compSyllableSelect');
         const compNewWordBtn = document.getElementById('compNewWordBtn');
         const compRepeatWordBtn = document.getElementById('compRepeatWordBtn');
@@ -586,6 +566,7 @@
         const compHandwritingStatus = document.getElementById('compHandwritingStatus');
 
         // Pronuncia
+        const pronThemeSelect = document.getElementById('pronThemeSelect');
         const pronSyllableSelect = document.getElementById('pronSyllableSelect');
         const pronFontSelect = document.getElementById('pronFontSelect');
         const pronNewWordBtn = document.getElementById('pronNewWordBtn');
@@ -649,13 +630,38 @@
         }
         initializeTesseract();
 
+        // Popola i dropdown dei temi in entrambi i moduli
+        function populateThemeSelects() {
+            const labels = wordDatabase.tema_labels;
+            [compThemeSelect, pronThemeSelect].forEach(sel => {
+                sel.innerHTML = '';
+                Object.entries(labels).forEach(([value, text]) => {
+                    const opt = document.createElement('option');
+                    opt.value = value;
+                    opt.textContent = text;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+        populateThemeSelects();
+
 
         // --- FUNZIONI HELPER ---
-        function getRandomWord(syllables) {
-            const wordList = wordDatabase[syllables];
+        function getRandomWord(syllables, tema) {
+            const temi = Object.keys(wordDatabase).filter(k => k !== 'tema_labels');
+            let wordList;
+            if (!tema || tema === 'tutti') {
+                wordList = temi.flatMap(t => (wordDatabase[t][syllables] || []));
+            } else {
+                wordList = (wordDatabase[tema] && wordDatabase[tema][syllables]) || [];
+                if (wordList.length === 0) {
+                    // Fallback su tutti i temi se quello scelto non ha parole per questa lunghezza
+                    wordList = temi.flatMap(t => (wordDatabase[t][syllables] || []));
+                }
+            }
             if (!wordList || wordList.length === 0) {
-                console.error(`Nessuna parola per la categoria di sillabe: ${syllables}`);
-                return "ERRORE"; // Fallback
+                console.error(`Nessuna parola per: tema=${tema}, sillabe=${syllables}`);
+                return null;
             }
             return wordList[Math.floor(Math.random() * wordList.length)];
         }
@@ -678,6 +684,27 @@
         function normalizeText(text) {
             if (typeof text !== 'string') return '';
             return text.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
+        }
+
+        function levenshtein(a, b) {
+            const m = a.length, n = b.length;
+            const dp = Array.from({length: m + 1}, (_, i) =>
+                Array.from({length: n + 1}, (_, j) => i === 0 ? j : j === 0 ? i : 0)
+            );
+            for (let i = 1; i <= m; i++)
+                for (let j = 1; j <= n; j++)
+                    dp[i][j] = a[i-1] === b[j-1]
+                        ? dp[i-1][j-1]
+                        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+            return dp[m][n];
+        }
+
+        // Tolleranza: 1 errore per parole ≤4 lettere, 2 per ≤7, 3 per le più lunghe
+        function isAnswerAccepted(user, correct) {
+            if (user === correct) return true;
+            const maxLen = Math.max(user.length, correct.length);
+            const tolerance = maxLen <= 4 ? 1 : maxLen <= 7 ? 2 : 3;
+            return levenshtein(user, correct) <= tolerance;
         }
 
         function displayFeedback(feedbackElement, inputElementOrCanvas, isCorrect, messageText) {
@@ -744,7 +771,8 @@
         }
         
         function generateNewCompWord() {
-            currentCompWord = getRandomWord(compSyllableSelect.value);
+            currentCompWord = getRandomWord(compSyllableSelect.value, compThemeSelect.value);
+            if (!currentCompWord) return;
             speakWord(currentCompWord);
             compKeyboardInput.value = '';
             compKeyboardInput.className = '';
@@ -767,7 +795,7 @@
             }
             const userAnswer = normalizeText(compKeyboardInput.value);
             const correctAnswer = normalizeText(currentCompWord);
-            const isCorrect = userAnswer === correctAnswer;
+            const isCorrect = isAnswerAccepted(userAnswer, correctAnswer);
             displayFeedback(compKeyboardFeedback, compKeyboardInput, isCorrect, isCorrect ? "BRAVISSIMO!!! 🎉" : "NON TI PREOCCUPARE, RIPROVA 💪");
         });
         
@@ -954,7 +982,7 @@
                 recognizedPronunciationElem.textContent = transcript;
                 const userAnswer = normalizeText(transcript);
                 const correctAnswer = normalizeText(currentPronWord);
-                const isCorrect = userAnswer === correctAnswer;
+                const isCorrect = isAnswerAccepted(userAnswer, correctAnswer);
                 displayFeedback(pronFeedback, textToPronounceElem, isCorrect, isCorrect ? "PRONUNCIA PERFETTA! BRAVISSIMO! 🎉" : "QUASI! RIPROVA A PRONUNCIARE MEGLIO 💪");
                 pronStatus.textContent = `Hai detto: "${transcript}".`;
             };
@@ -1011,7 +1039,8 @@
         }
 
         function generateNewPronWord() {
-            currentPronWord = getRandomWord(pronSyllableSelect.value);
+            currentPronWord = getRandomWord(pronSyllableSelect.value, pronThemeSelect.value);
+            if (!currentPronWord) return;
             applyFontToPronWord();
             recognizedPronunciationElem.textContent = '- - -';
             pronFeedback.innerHTML = '';
