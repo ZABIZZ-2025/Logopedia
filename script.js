@@ -386,3 +386,21 @@ function populateThemeSelects() {
 }
 
 populateThemeSelects();
+
+// ============================================================
+// BLOCCO 6 — NAVIGAZIONE TRA MODULI
+// ============================================================
+
+navButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const targetId = button.dataset.module;
+
+        modules.forEach(m => m.classList.toggle('active', m.id === targetId));
+        navButtons.forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
+
+        if      (targetId === 'comprensione') initComprensioneModule();
+        else if (targetId === 'pronuncia')    initPronunciaModule();
+        else if (targetId === 'ripeti')       initRipetiModule();
+    });
+});
