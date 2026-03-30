@@ -193,3 +193,134 @@ const voiceSelect     = document.getElementById('voiceSelect');
 
 // Fuochi d'artificio
 const fireworksContainer = document.getElementById('fireworksContainer');
+
+// ============================================================
+// BLOCCO 3 — FUNZIONI HELPER
+// ============================================================
+
+// Restituisce una parola casuale dal database per tema e numero di sillabe
+function getRandomWord(syllables, tema) {
+    const temi = Object.keys(wordDatabase).filter(k => k !== 'tema_labels');
+    let wordList;
+    if (!tema || tema === 'tutti') {
+        wordList = temi.flatMap(t => wordDatabase[t][syllables] || []);
+    } else {
+        wordList = (wordDatabase[tema] && wordDatabase[tema][syllables]) || [];
+        if (wordList.length === 0) {
+            // Fallback su tutti i temi se quello scelto non ha parole per questa lunghezza
+            wordList = temi.flatMap(t => wordDatabase[t][syllables] || []);
+        }
+    }
+    if (!wordList || wordList.length === 0) {
+        console.error(`Nessuna parola per: tema=${tema}, sillabe=${syllables}`);
+        return null;
+    }
+    return wordList[Math.floor(Math.random() * wordList.length)];
+}
+
+// Legge un testo ad alta voce con la voce e la velocità impostate
+function speakWord(text) {
+    if (!('speechSynthesis' in window)) {
+        alert('Il tuo browser non supporta la sintesi vocale.');
+        return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'it-IT';
+    utterance.rate = speechRate;
+    if (selectedSpeechSynthesisVoice) utterance.voice = selectedSpeechSynthesisVoice;
+    window.speechSynthesis.speak(utterance);
+}
+
+// ⭐ NUOVO — Feedback audio dopo ogni risposta
+function speakFeedback(isCorrect) {
+    const frasi = isCorrect
+        ? ['Bravo!', 'Ottimo!', 'Perfetto!', 'Fantastico!', 'Bravissimo!']
+        : ['Riprova!', 'Quasi!', 'Non mollare!', 'Ce la puoi fare!'];
+    speakWord(frasi[Math.floor(Math.random() * frasi.length)]);
+}
+
+// Normalizza il testo: maiuscolo, senza accenti, senza punteggiatura
+function normalizeText(text) {
+    if (typeof text !== 'string') return '';
+    return text.trim().toUpperCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\w\s]/gi, '');
+}
+
+// Calcola la distanza di Levenshtein tra due stringhe
+function levenshtein(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, (_, i) =>
+        Array.from({ length: n + 1 }, (_, j) => i === 0 ? j : j === 0 ? i : 0)
+    );
+    for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++)
+            dp[i][j] = a[i-1] === b[j-1]
+                ? dp[i-1][j-1]
+                : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    return dp[m][n];
+}
+
+// Accetta la risposta con tolleranza: 1 errore ≤4 lettere, 2 ≤7, 3 oltre
+function isAnswerAccepted(user, correct) {
+    if (user === correct) return true;
+    const maxLen = Math.max(user.length, correct.length);
+    const tolerance = maxLen <= 4 ? 1 : maxLen <= 7 ? 2 : 3;
+    return levenshtein(user, correct) <= tolerance;
+}
+
+// Mostra il feedback visivo nell'elemento indicato
+function displayFeedback(feedbackElem, inputElem, isCorrect, message) {
+    feedbackElem.innerHTML = '';
+    const span = document.createElement('span');
+    span.textContent = message;
+    span.className = 'feedback-text ' + (isCorrect ? 'correct-feedback' : 'incorrect-feedback');
+
+    if (isCorrect) {
+        if (inputElem) inputElem.classList.replace('incorrect', 'correct') || inputElem.classList.add('correct');
+        triggerFireworks();
+    } else {
+        if (inputElem) inputElem.classList.replace('correct', 'incorrect') || inputElem.classList.add('incorrect');
+    }
+    feedbackElem.appendChild(span);
+
+    if (inputElem) {
+        const original = inputElem.id === 'textToPronounce' ? '#e3f2fd' : '';
+        setTimeout(() => {
+            inputElem.classList.remove('correct', 'incorrect');
+            if (original) inputElem.style.backgroundColor = original;
+        }, 2500);
+    }
+}
+
+// ⭐ NUOVO — Aggiorna i contatori sessione nell'UI
+function updateStats(module, isCorrect) {
+    if (isCorrect) sessionStats[module].correct++;
+    else           sessionStats[module].wrong++;
+    document.getElementById(module + 'Correct').textContent = sessionStats[module].correct;
+    document.getElementById(module + 'Wrong').textContent   = sessionStats[module].wrong;
+}
+
+// Animazione fuochi d'artificio
+function triggerFireworks() {
+    const colors = ['var(--primary-color)','var(--secondary-color)','var(--tertiary-color)',
+                    '#4caf50','#f44336','#9c27b0'];
+    for (let i = 0; i < 25; i++) {
+        const p = document.createElement('div');
+        p.classList.add('particle');
+        const xS = Math.random() * fireworksContainer.offsetWidth;
+        const yS = Math.random() * fireworksContainer.offsetHeight;
+        const angle = Math.random() * Math.PI * 2;
+        const dist  = Math.random() * 100 + 50;
+        p.style.setProperty('--tx',     '0px');
+        p.style.setProperty('--tx-end', `${Math.cos(angle) * dist}px`);
+        p.style.setProperty('--ty',     '0px');
+        p.style.setProperty('--ty-end', `${Math.sin(angle) * dist}px`);
+        p.style.left = `${xS}px`;
+        p.style.top  = `${yS}px`;
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        fireworksContainer.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+    }
+}
