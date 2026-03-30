@@ -404,3 +404,215 @@ navButtons.forEach(button => {
         else if (targetId === 'ripeti')       initRipetiModule();
     });
 });
+
+// ============================================================
+// BLOCCO 7 — MODULO "ASCOLTA E SCRIVI"
+// ============================================================
+
+// Stato canvas lettera per lettera
+let letterCanvases  = [];
+let letterContexts  = [];
+let activeLetterIndex = 0;
+let letterIsDrawing = false;
+let letterLastX = 0;
+let letterLastY = 0;
+
+function initComprensioneModule() {
+    compKeyboardInput.value = '';
+    compKeyboardInput.className = '';
+    compKeyboardFeedback.innerHTML = '';
+    compHandwritingFeedback.innerHTML = '';
+    compHandwritingStatus.textContent = tesseractScheduler
+        ? 'Pronto per disegnare!'
+        : 'Inizializzazione Tesseract... attendere.';
+    generateNewCompWord();
+}
+
+function generateNewCompWord() {
+    currentCompWord = getRandomWord(compSyllableSelect.value, compThemeSelect.value);
+    if (!currentCompWord) return;
+    speakWord(currentCompWord);
+    compKeyboardInput.value = '';
+    compKeyboardInput.className = '';
+    compKeyboardFeedback.innerHTML = '';
+    compHandwritingFeedback.innerHTML = '';
+    initializeLetterBoxes(currentCompWord);
+    if (tesseractScheduler) compHandwritingStatus.textContent = 'Disegna ogni lettera nella sua casella!';
+}
+
+// Restituisce la posizione del puntatore relativa al canvas, compensando la scala CSS
+function getCanvasPos(canvas, event) {
+    const rect   = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+    const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+    return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+}
+
+// Crea una casella canvas per ogni lettera della parola
+function initializeLetterBoxes(word) {
+    letterBoxesContainer.innerHTML = '';
+    letterCanvases  = [];
+    letterContexts  = [];
+    activeLetterIndex = 0;
+    compHandwritingFeedback.innerHTML = '';
+
+    normalizeText(word).split('').forEach((letter, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'letter-box-wrapper';
+
+        const numLabel = document.createElement('span');
+        numLabel.className = 'letter-box-number';
+        numLabel.textContent = index + 1;
+
+        const canvas = document.createElement('canvas');
+        canvas.width  = 80;
+        canvas.height = 90;
+        canvas.className = 'letter-canvas';
+        canvas.dataset.index = index;
+
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff8e1';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        canvas.addEventListener('mousedown',  e => startLetterDrawing(e, index));
+        canvas.addEventListener('mousemove',  e => drawLetter(e, index));
+        canvas.addEventListener('mouseup',    stopLetterDrawing);
+        canvas.addEventListener('mouseout',   stopLetterDrawing);
+        canvas.addEventListener('touchstart', e => startLetterDrawing(e, index), { passive: false });
+        canvas.addEventListener('touchmove',  e => drawLetter(e, index),         { passive: false });
+        canvas.addEventListener('touchend',   stopLetterDrawing);
+
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = '✕';
+        clearBtn.className   = 'letter-clear-btn';
+        clearBtn.title = 'Cancella questa casella';
+        clearBtn.addEventListener('click', e => { e.stopPropagation(); clearLetterBox(index); });
+
+        wrapper.appendChild(numLabel);
+        wrapper.appendChild(canvas);
+        wrapper.appendChild(clearBtn);
+        letterBoxesContainer.appendChild(wrapper);
+
+        letterCanvases.push(canvas);
+        letterContexts.push(ctx);
+    });
+
+    if (letterCanvases.length > 0) setActiveLetterBox(0);
+}
+
+function setActiveLetterBox(index) {
+    activeLetterIndex = index;
+    letterCanvases.forEach((c, i) => c.classList.toggle('active-letter-box', i === index));
+}
+
+function startLetterDrawing(e, index) {
+    e.preventDefault();
+    setActiveLetterBox(index);
+    letterIsDrawing = true;
+    const pos = getCanvasPos(letterCanvases[index], e);
+    letterLastX = pos.x;
+    letterLastY = pos.y;
+}
+
+function drawLetter(e, index) {
+    e.preventDefault();
+    if (!letterIsDrawing || index !== activeLetterIndex) return;
+    const ctx = letterContexts[index];
+    const pos = getCanvasPos(letterCanvases[index], e);
+    ctx.beginPath();
+    ctx.moveTo(letterLastX, letterLastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth   = 4;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.stroke();
+    letterLastX = pos.x;
+    letterLastY = pos.y;
+}
+
+function stopLetterDrawing() { letterIsDrawing = false; }
+
+function clearLetterBox(index) {
+    const ctx = letterContexts[index];
+    ctx.clearRect(0, 0, letterCanvases[index].width, letterCanvases[index].height);
+    ctx.fillStyle = '#fff8e1';
+    ctx.fillRect(0, 0, letterCanvases[index].width, letterCanvases[index].height);
+    letterCanvases[index].classList.remove('correct-box', 'incorrect-box');
+}
+
+function clearAllLetterBoxes() {
+    letterCanvases.forEach((_, i) => clearLetterBox(i));
+    if (letterCanvases.length > 0) setActiveLetterBox(0);
+    compHandwritingFeedback.innerHTML = '';
+    if (tesseractScheduler) compHandwritingStatus.textContent = 'Caselle pulite! Ricomincia a disegnare.';
+}
+
+// --- Event listeners comprensione ---
+compNewWordBtn.addEventListener('click', generateNewCompWord);
+
+compRepeatWordBtn.addEventListener('click', () => {
+    if (currentCompWord) speakWord(currentCompWord);
+    else compHandwritingStatus.textContent = 'Nessuna parola da ripetere.';
+});
+
+compCheckKeyboardBtn.addEventListener('click', () => {
+    if (!currentCompWord) {
+        compKeyboardFeedback.innerHTML = '<span class="feedback-text incorrect-feedback">Genera prima una parola!</span>';
+        return;
+    }
+    const userAnswer    = normalizeText(compKeyboardInput.value);
+    const correctAnswer = normalizeText(currentCompWord);
+    const isCorrect     = isAnswerAccepted(userAnswer, correctAnswer);
+    displayFeedback(compKeyboardFeedback, compKeyboardInput, isCorrect,
+        isCorrect ? 'BRAVISSIMO!!! 🎉' : 'NON TI PREOCCUPARE, RIPROVA 💪');
+    updateStats('comp', isCorrect);
+    speakFeedback(isCorrect);
+});
+
+compClearCanvasBtn.addEventListener('click', clearAllLetterBoxes);
+
+compCheckHandwritingBtn.addEventListener('click', async () => {
+    if (!currentCompWord)      { compHandwritingStatus.textContent = 'Prima genera una parola!'; return; }
+    if (!tesseractScheduler)   { compHandwritingStatus.textContent = 'Tesseract non è pronto. Attendi o ricarica.'; return; }
+    if (letterCanvases.length === 0) { compHandwritingStatus.textContent = 'Prima genera una parola!'; return; }
+
+    compCheckHandwritingBtn.disabled = true;
+    compClearCanvasBtn.disabled = true;
+
+    const wordLetters    = normalizeText(currentCompWord).split('');
+    let   allCorrect     = true;
+    const recognizedChars = [];
+
+    try {
+        for (let i = 0; i < letterCanvases.length; i++) {
+            compHandwritingStatus.textContent = `Riconoscimento lettera ${i + 1} di ${letterCanvases.length}... 🧠`;
+            const { data: { text } } = await tesseractScheduler.addJob('recognize', letterCanvases[i]);
+            const cleaned    = normalizeText(text).replace(/\s/g, '');
+            const recognized = cleaned[0] || '';
+            const expected   = wordLetters[i];
+            const isOk       = recognized === expected;
+
+            if (!isOk) allCorrect = false;
+            recognizedChars.push(recognized || '?');
+            letterCanvases[i].classList.remove('correct-box', 'incorrect-box');
+            letterCanvases[i].classList.add(isOk ? 'correct-box' : 'incorrect-box');
+        }
+
+        displayFeedback(compHandwritingFeedback, null, allCorrect,
+            allCorrect ? 'OTTIMO! HAI SCRITTO TUTTO BENE! 🎉' : 'QUASI! LE CASELLE ROSSE VANNO RICONTROLLATE 💪');
+        compHandwritingStatus.textContent =
+            `Ho letto: "${recognizedChars.join('')}" — Parola corretta: "${wordLetters.join('')}"`;
+        updateStats('comp', allCorrect);
+        speakFeedback(allCorrect);
+    } catch (err) {
+        console.error('Errore Tesseract:', err);
+        compHandwritingStatus.textContent = 'Errore nel riconoscimento. Riprova.';
+        displayFeedback(compHandwritingFeedback, null, false, 'ERRORE NEL RICONOSCIMENTO 😵');
+    } finally {
+        compCheckHandwritingBtn.disabled = false;
+        compClearCanvasBtn.disabled = false;
+    }
+});
