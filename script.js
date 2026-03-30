@@ -132,3 +132,64 @@ const sessionStats = {
     pron:   { correct: 0, wrong: 0 },
     ripeti: { correct: 0, wrong: 0 }
 };
+
+// ============================================================
+// BLOCCO 2 — RIFERIMENTI DOM
+// ============================================================
+
+// Navigazione
+const modules    = document.querySelectorAll('.module');
+const navButtons = document.querySelectorAll('nav button');
+
+// Modulo Comprensione
+const compThemeSelect        = document.getElementById('compThemeSelect');
+const compSyllableSelect     = document.getElementById('compSyllableSelect');
+const compNewWordBtn         = document.getElementById('compNewWordBtn');
+const compRepeatWordBtn      = document.getElementById('compRepeatWordBtn');
+const compKeyboardInput      = document.getElementById('compKeyboardInput');
+const compCheckKeyboardBtn   = document.getElementById('compCheckKeyboardBtn');
+const compKeyboardFeedback   = document.getElementById('compKeyboardFeedback');
+const letterBoxesContainer   = document.getElementById('letterBoxesContainer');
+const compCheckHandwritingBtn= document.getElementById('compCheckHandwritingBtn');
+const compClearCanvasBtn     = document.getElementById('compClearCanvasBtn');
+const compHandwritingFeedback= document.getElementById('compHandwritingFeedback');
+const compHandwritingStatus  = document.getElementById('compHandwritingStatus');
+const compCorrectSpan        = document.getElementById('compCorrect');
+const compWrongSpan          = document.getElementById('compWrong');
+
+// Modulo Pronuncia
+const pronThemeSelect            = document.getElementById('pronThemeSelect');
+const pronSyllableSelect         = document.getElementById('pronSyllableSelect');
+const pronFontSelect             = document.getElementById('pronFontSelect');
+const pronNewWordBtn             = document.getElementById('pronNewWordBtn');
+const textToPronounceElem        = document.getElementById('textToPronounce');
+const pronRecordBtn              = document.getElementById('pronRecordBtn');
+const recognizedPronunciationElem= document.getElementById('recognizedPronunciation');
+const pronFeedback               = document.getElementById('pronFeedback');
+const pronStatus                 = document.getElementById('pronStatus');
+const pronPlayUserRecordingBtn   = document.getElementById('pronPlayUserRecordingBtn');
+const pronClearUserRecordingBtn  = document.getElementById('pronClearUserRecordingBtn');
+const pronCorrectSpan            = document.getElementById('pronCorrect');
+const pronWrongSpan              = document.getElementById('pronWrong');
+
+// Modulo Ripeti
+const ripetiThemeSelect    = document.getElementById('ripetiThemeSelect');
+const ripetiSyllableSelect = document.getElementById('ripetiSyllableSelect');
+const ripetiNewWordBtn     = document.getElementById('ripetiNewWordBtn');
+const ripetiHiddenWord     = document.getElementById('ripetiHiddenWord');
+const ripetiListenBtn      = document.getElementById('ripetiListenBtn');
+const ripetiRevealBtn      = document.getElementById('ripetiRevealBtn');
+const ripetiRecordBtn      = document.getElementById('ripetiRecordBtn');
+const ripetiRecognized     = document.getElementById('ripetiRecognized');
+const ripetiFeedback       = document.getElementById('ripetiFeedback');
+const ripetiStatus         = document.getElementById('ripetiStatus');
+const ripetiCorrectSpan    = document.getElementById('ripetiCorrect');
+const ripetiWrongSpan      = document.getElementById('ripetiWrong');
+
+// Modulo Impostazioni
+const speechRateRange = document.getElementById('speechRateRange');
+const speechRateValue = document.getElementById('speechRateValue');
+const voiceSelect     = document.getElementById('voiceSelect');
+
+// Fuochi d'artificio
+const fireworksContainer = document.getElementById('fireworksContainer');
