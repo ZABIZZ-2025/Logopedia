@@ -324,3 +324,65 @@ function triggerFireworks() {
         setTimeout(() => p.remove(), 800);
     }
 }
+
+// ============================================================
+// BLOCCO 4 — INIZIALIZZAZIONE TESSERACT
+// ============================================================
+
+async function initializeTesseract() {
+    try {
+        compHandwritingStatus.textContent = 'Caricamento Tesseract...';
+        tesseractScheduler = Tesseract.createScheduler();
+        if (!tesseractScheduler) {
+            compHandwritingStatus.textContent = 'Errore Tesseract Scheduler.';
+            return;
+        }
+        const worker = await Tesseract.createWorker('ita', 1, {
+            logger: m => {
+                if (m.status === 'loading language model' || m.status === 'initializing tesseract') {
+                    compHandwritingStatus.textContent = `Tesseract: ${m.status} ${Math.round(m.progress * 100)}%`;
+                } else if (m.status === 'recognizing text') {
+                    compHandwritingStatus.textContent = `Riconoscimento: ${Math.round(m.progress * 100)}%`;
+                }
+            }
+        });
+        if (!worker) {
+            compHandwritingStatus.textContent = 'Errore Tesseract Worker.';
+            tesseractScheduler.terminate();
+            tesseractScheduler = null;
+            return;
+        }
+        // PSM 10 = singolo carattere; whitelist lettere maiuscole
+        await worker.setParameters({
+            tessedit_pageseg_mode: '10',
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        });
+        await tesseractScheduler.addWorker(worker);
+        compHandwritingStatus.textContent = 'Pronto per disegnare!';
+    } catch (err) {
+        console.error('Errore inizializzazione Tesseract:', err);
+        compHandwritingStatus.textContent = 'Errore caricamento Tesseract. Ricarica la pagina.';
+        if (tesseractScheduler) { tesseractScheduler.terminate(); tesseractScheduler = null; }
+    }
+}
+
+initializeTesseract();
+
+// ============================================================
+// BLOCCO 5 — POPOLAMENTO DROPDOWN TEMI
+// ============================================================
+
+function populateThemeSelects() {
+    const labels = wordDatabase.tema_labels;
+    [compThemeSelect, pronThemeSelect, ripetiThemeSelect].forEach(sel => {
+        sel.innerHTML = '';
+        Object.entries(labels).forEach(([value, text]) => {
+            const opt = document.createElement('option');
+            opt.value = value;
+            opt.textContent = text;
+            sel.appendChild(opt);
+        });
+    });
+}
+
+populateThemeSelects();
