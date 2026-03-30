@@ -948,3 +948,50 @@ voiceSelect.addEventListener('change', () => {
         speechSynthesis.getVoices().find(v => v.name === name)
         || selectedSpeechSynthesisVoice;
 });
+
+// ============================================================
+// BLOCCO 11 — AVVISO COMPATIBILITÀ + PRIVACY
+// ============================================================
+
+function checkCompatibility() {
+    const features = [
+        {
+            label: 'Sintesi vocale (la voce che legge le parole)',
+            ok: 'speechSynthesis' in window
+        },
+        {
+            label: 'Riconoscimento vocale (controlla come parli)',
+            ok: !!(window.SpeechRecognition || window.webkitSpeechRecognition)
+        },
+        {
+            label: 'Registrazione audio (ascolta la tua voce)',
+            ok: !!(navigator.mediaDevices && window.MediaRecorder)
+        },
+        {
+            label: 'Riconoscimento scrittura OCR (controlla i disegni)',
+            ok: typeof Tesseract !== 'undefined'
+        }
+    ];
+
+    const list = document.getElementById('compatList');
+    features.forEach(f => {
+        const li = document.createElement('li');
+        li.textContent = (f.ok ? '✅ ' : '⚠️ ') + f.label
+            + (f.ok ? '' : ' — non disponibile su questo browser');
+        list.appendChild(li);
+    });
+
+    document.getElementById('compatModal').classList.remove('hidden');
+    document.getElementById('compatCloseBtn').addEventListener('click', () => {
+        document.getElementById('compatModal').classList.add('hidden');
+    });
+}
+
+// ============================================================
+// BLOCCO 12 — INIZIALIZZAZIONE PAGINA
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    checkCompatibility();
+    if (navButtons.length > 0) navButtons[0].click();
+});
