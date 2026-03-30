@@ -616,3 +616,168 @@ compCheckHandwritingBtn.addEventListener('click', async () => {
         compClearCanvasBtn.disabled = false;
     }
 });
+
+// ============================================================
+// BLOCCO 8 — MODULO "LEGGI E PARLA"
+// ============================================================
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition;
+let isAsrRecording = false;
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'it-IT';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+        isAsrRecording = true;
+        pronStatus.textContent = 'Sto ascoltando... Parla ora! 📢';
+        pronRecordBtn.textContent = 'Ascoltando...';
+        pronRecordBtn.style.backgroundColor = 'var(--error-color)';
+    };
+
+    recognition.onresult = event => {
+        const transcript = event.results[0][0].transcript;
+        recognizedPronunciationElem.textContent = transcript;
+        const isCorrect = isAnswerAccepted(normalizeText(transcript), normalizeText(currentPronWord));
+        displayFeedback(pronFeedback, textToPronounceElem, isCorrect,
+            isCorrect ? 'PRONUNCIA PERFETTA! BRAVISSIMO! 🎉' : 'QUASI! RIPROVA A PRONUNCIARE MEGLIO 💪');
+        updateStats('pron', isCorrect);
+        speakFeedback(isCorrect);
+        pronStatus.textContent = `Hai detto: "${transcript}".`;
+    };
+
+    recognition.onspeechend = () => {
+        recognition.stop();
+        pronStatus.textContent = 'Ho sentito! Sto pensando... 🤔';
+    };
+
+    recognition.onend = () => {
+        isAsrRecording = false;
+        pronRecordBtn.textContent = 'Premi e Parla 🎤';
+        pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
+        if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+        if (recognizedPronunciationElem.textContent === '- - -') {
+            pronStatus.textContent = 'Non ho capito bene. Riprova a parlare!';
+        }
+    };
+
+    recognition.onerror = event => {
+        console.error('Errore SpeechRecognition:', event.error);
+        let msg = `Ops! Errore: ${event.error}. `;
+        if      (event.error === 'no-speech')     msg += 'Non ho sentito nulla. Parla più forte!';
+        else if (event.error === 'audio-capture') msg += 'Problemi col microfono.';
+        else if (event.error === 'not-allowed')   msg += 'Devi darmi il permesso di usare il microfono! 🙁';
+        else msg += 'Qualcosa è andato storto.';
+        pronStatus.textContent = msg;
+        recognizedPronunciationElem.textContent = '- ERRORE -';
+        displayFeedback(pronFeedback, textToPronounceElem, false, 'ERRORE VOCALE 😵');
+        isAsrRecording = false;
+        pronRecordBtn.textContent = 'Premi e Parla 🎤';
+        pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
+    };
+} else {
+    pronStatus.textContent = 'Il tuo browser non supporta il riconoscimento vocale.';
+    if (pronRecordBtn) pronRecordBtn.disabled = true;
+}
+
+function initPronunciaModule() {
+    currentPronWord = '';
+    textToPronounceElem.textContent = 'Premi "Nuova Parola da Leggere"';
+    textToPronounceElem.className = '';
+    textToPronounceElem.style.backgroundColor = '#e3f2fd';
+    recognizedPronunciationElem.textContent = '- - -';
+    pronFeedback.innerHTML = '';
+    pronStatus.textContent = SpeechRecognition
+        ? 'Pronto per leggere e parlare!'
+        : 'Riconoscimento vocale non supportato.';
+    if (recordedAudioURL) { URL.revokeObjectURL(recordedAudioURL); recordedAudioURL = null; }
+    audioChunks = [];
+    pronPlayUserRecordingBtn.disabled = true;
+    pronClearUserRecordingBtn.disabled = true;
+    generateNewPronWord();
+}
+
+function generateNewPronWord() {
+    currentPronWord = getRandomWord(pronSyllableSelect.value, pronThemeSelect.value);
+    if (!currentPronWord) return;
+    applyFontToPronWord();
+    recognizedPronunciationElem.textContent = '- - -';
+    pronFeedback.innerHTML = '';
+    textToPronounceElem.style.backgroundColor = '#e3f2fd';
+    pronStatus.textContent = 'Leggi la parola qui sopra e poi premi "Premi e Parla"!';
+}
+
+function applyFontToPronWord() {
+    if (!currentPronWord) return;
+    textToPronounceElem.textContent = currentPronWord;
+    textToPronounceElem.className = '';
+    textToPronounceElem.classList.add(pronFontSelect.value);
+}
+
+pronNewWordBtn.addEventListener('click', generateNewPronWord);
+pronFontSelect.addEventListener('change', applyFontToPronWord);
+
+pronRecordBtn.addEventListener('click', async () => {
+    if (!SpeechRecognition) { pronStatus.textContent = 'Riconoscimento vocale non supportato.'; return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        pronStatus.textContent = 'Registrazione audio non supportata (richiede HTTPS).'; return;
+    }
+    if (!currentPronWord) { pronStatus.textContent = 'Prima genera una parola da leggere!'; return; }
+
+    if (isAsrRecording) {
+        recognition.stop();
+        if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+        return;
+    }
+
+    recognizedPronunciationElem.textContent = '- - -';
+    pronFeedback.innerHTML = '';
+    textToPronounceElem.style.backgroundColor = '#e3f2fd';
+    audioChunks = [];
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            stream.getTracks().forEach(t => t.stop());
+            if (audioChunks.length > 0) {
+                if (recordedAudioURL) URL.revokeObjectURL(recordedAudioURL);
+                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                recordedAudioURL = URL.createObjectURL(blob);
+                pronPlayUserRecordingBtn.disabled = false;
+                pronClearUserRecordingBtn.disabled = false;
+            }
+        };
+        mediaRecorder.start();
+        recognition.start();
+    } catch (e) {
+        pronStatus.textContent = "Errore nell'avviare la registrazione. Controlla il microfono.";
+        console.error('Errore avvio registrazione:', e);
+        isAsrRecording = false;
+        pronRecordBtn.textContent = 'Premi e Parla 🎤';
+        pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
+    }
+});
+
+pronPlayUserRecordingBtn.addEventListener('click', () => {
+    if (!recordedAudioURL) return;
+    const audio = new Audio(recordedAudioURL);
+    pronPlayUserRecordingBtn.disabled = true;
+    pronStatus.textContent = 'Riproduzione in corso... 🎧';
+    audio.play();
+    audio.onended = () => { pronPlayUserRecordingBtn.disabled = false; pronStatus.textContent = ''; };
+    audio.onerror = () => { pronPlayUserRecordingBtn.disabled = false; pronStatus.textContent = 'Errore nella riproduzione.'; };
+});
+
+pronClearUserRecordingBtn.addEventListener('click', () => {
+    if (recordedAudioURL) { URL.revokeObjectURL(recordedAudioURL); recordedAudioURL = null; }
+    audioChunks = [];
+    pronPlayUserRecordingBtn.disabled = true;
+    pronClearUserRecordingBtn.disabled = true;
+    pronStatus.textContent = 'Registrazione cancellata.';
+});
