@@ -1,0 +1,426 @@
+:root {
+    --primary-color: #29b6f6;
+    --secondary-color: #ffca28;
+    --tertiary-color: #ff7043;
+    --success-color: #66bb6a;
+    --error-color: #ef5350;
+    --text-color: #424242;
+    --bg-light: #f0f4f8;
+    --bg-white: #ffffff;
+    --font-fun: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive, sans-serif;
+}
+
+body {
+    font-family: var(--font-fun);
+    margin: 0;
+    background-color: var(--bg-light);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding-bottom: 30px;
+    box-sizing: border-box;
+}
+
+/* ── MODAL COMPATIBILITÀ / PRIVACY ── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.modal-box {
+    background: var(--bg-white);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border-top: 6px solid var(--primary-color);
+}
+
+.modal-box h3 {
+    color: var(--tertiary-color);
+    font-size: 1.8em;
+    margin-top: 0;
+}
+
+.modal-box ul {
+    text-align: left;
+    list-style: none;
+    padding: 0;
+    margin: 15px 0;
+}
+
+.modal-box li {
+    padding: 5px 0;
+    font-size: 1em;
+}
+
+.privacy-note {
+    background: #e3f2fd;
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 0.9em;
+    color: #444;
+    margin: 15px 0;
+    text-align: left;
+}
+
+/* ── HEADER ── */
+header {
+    background-color: var(--primary-color);
+    color: var(--bg-white);
+    width: 100%;
+    padding: 15px 0;
+    text-align: center;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    border-bottom: 5px solid var(--secondary-color);
+}
+
+header h1 {
+    margin: 0;
+    font-size: clamp(1.8em, 5vw, 2.5em);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* ── NAV ── */
+nav {
+    margin-bottom: 25px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+nav button {
+    padding: 12px 25px;
+    font-size: clamp(1em, 3vw, 1.2em);
+    cursor: pointer;
+    border: none;
+    border-radius: 25px;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    font-family: var(--font-fun);
+    transition: transform 0.2s ease-out, background-color 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+nav button:hover,
+nav button.active {
+    background-color: #fbc02d;
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+nav button.active {
+    background-color: var(--tertiary-color);
+    color: white;
+}
+
+/* ── MODULES ── */
+.module {
+    display: none;
+    background-color: var(--bg-white);
+    padding: clamp(15px, 4vw, 30px);
+    border-radius: 20px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 750px;
+    text-align: center;
+    border-top: 8px solid var(--primary-color);
+}
+
+.module.active {
+    display: block;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.module h2 {
+    color: var(--tertiary-color);
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: clamp(1.5em, 4vw, 2em);
+}
+
+/* ── CONTATORE SESSIONE ── */
+.session-stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1em;
+    font-weight: bold;
+    margin-bottom: 18px;
+    padding: 6px 18px;
+    background: var(--bg-light);
+    border-radius: 20px;
+    border: 2px solid var(--secondary-color);
+}
+
+/* ── FORM GROUPS ── */
+.controls-group,
+.input-group,
+.feedback-area {
+    margin-bottom: 25px;
+    padding: 15px;
+    border: 2px dashed var(--secondary-color);
+    border-radius: 15px;
+    background-color: #fffbf1;
+}
+
+.input-group p { margin-top: 0; }
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+select,
+input[type="text"],
+input[type="range"] {
+    padding: 10px 15px;
+    font-size: 1em;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    margin: 5px 0;
+    font-family: var(--font-fun);
+    width: calc(100% - 34px);
+    max-width: 300px;
+    box-sizing: border-box;
+}
+
+input[type="range"] { width: 80%; }
+
+/* ── BUTTONS ── */
+button.action-btn,
+.module button:not(nav button) {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 5px;
+    transition: background-color 0.2s, transform 0.1s;
+    font-family: var(--font-fun);
+}
+
+button.action-btn:hover,
+.module button:not(nav button):hover {
+    background-color: #0288d1;
+    transform: scale(1.02);
+}
+
+button:disabled {
+    background-color: #e0e0e0 !important;
+    color: #9e9e9e !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* ── LETTER BOXES (COMPRENSIONE) ── */
+#letterBoxesContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    padding: 10px 0;
+    min-height: 110px;
+}
+
+.letter-box-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.letter-box-number {
+    font-size: 0.75em;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.letter-canvas {
+    border: 3px solid var(--tertiary-color);
+    background-color: #fff8e1;
+    cursor: crosshair;
+    touch-action: none;
+    border-radius: 8px;
+    display: block;
+}
+
+.letter-canvas.active-letter-box {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px rgba(41, 182, 246, 0.5);
+}
+
+.letter-canvas.correct-box {
+    border-color: var(--success-color) !important;
+    background-color: #e8f5e9 !important;
+}
+
+.letter-canvas.incorrect-box {
+    border-color: var(--error-color) !important;
+    background-color: #ffebee !important;
+}
+
+.letter-clear-btn {
+    padding: 2px 6px;
+    font-size: 0.7em;
+    background-color: #ef9a9a;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: white;
+    font-family: var(--font-fun);
+}
+
+.letter-clear-btn:hover {
+    background-color: var(--error-color);
+}
+
+/* ── FEEDBACK ── */
+.feedback-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 40px;
+}
+
+.feedback-text {
+    font-size: clamp(1.2em, 3.5vw, 1.6em);
+    font-weight: bold;
+}
+
+.correct-feedback  { color: var(--success-color); }
+.incorrect-feedback { color: var(--error-color); }
+
+input[type="text"].correct  { background-color: #e8f5e9 !important; border-color: var(--success-color) !important; }
+input[type="text"].incorrect { background-color: #ffebee !important; border-color: var(--error-color) !important; }
+
+/* ── PRONUNCIA ── */
+#textToPronounce {
+    font-size: clamp(1.8em, 6vw, 3em);
+    padding: 20px;
+    border: 3px solid var(--primary-color);
+    border-radius: 15px;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e3f2fd;
+    margin-bottom: 20px;
+    word-break: break-all;
+}
+
+#textToPronounce.correct  { background-color: #e8f5e9 !important; border-color: var(--success-color) !important; }
+#textToPronounce.incorrect { background-color: #ffebee !important; border-color: var(--error-color) !important; }
+
+#recognizedPronunciation,
+#ripetiRecognized {
+    font-size: clamp(1.2em, 4vw, 1.8em);
+    padding: 10px;
+    margin-top: 10px;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    min-height: 40px;
+    background-color: #fafafa;
+}
+
+#compHandwritingStatus,
+#pronStatus,
+#ripetiStatus {
+    font-style: italic;
+    color: #757575;
+    min-height: 20px;
+    margin-top: 10px;
+}
+
+/* ── RIPETI DOPO DI ME ── */
+.ripeti-word-box {
+    text-align: center;
+    margin: 5px 0 20px;
+    padding: 15px;
+    border: 2px dashed var(--secondary-color);
+    border-radius: 15px;
+    background-color: #fffbf1;
+}
+
+.ripeti-hidden {
+    font-size: clamp(2em, 7vw, 3.5em);
+    padding: 20px;
+    border: 3px solid var(--primary-color);
+    border-radius: 15px;
+    background-color: #e3f2fd;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-break: break-all;
+    filter: blur(0);
+    transition: filter 0.4s ease;
+    user-select: none;
+}
+
+.ripeti-hidden.blurred {
+    filter: blur(10px);
+    cursor: pointer;
+}
+
+/* ── FONT CLASSES (PRONUNCIA) ── */
+.font-stampatello-maiuscolo { text-transform: uppercase; font-family: Arial, Helvetica, sans-serif; letter-spacing: 1px; }
+.font-stampatello-minuscolo { text-transform: lowercase;  font-family: Arial, Helvetica, sans-serif; }
+.font-corsivo-maiuscolo     { text-transform: uppercase; font-family: var(--font-fun); font-style: italic; }
+.font-corsivo-minuscolo     { text-transform: lowercase;  font-family: var(--font-fun); font-style: italic; }
+
+/* ── FIREWORKS ── */
+.fireworks-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+.particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    opacity: 0;
+    animation: explode 0.8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes explode {
+    0%   { transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.3); opacity: 1; }
+    100% { transform: translate(var(--tx-end, 0), var(--ty-end, 0)) scale(1.8); opacity: 0; }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+    .letter-canvas { width: 60px !important; height: 70px !important; }
+}

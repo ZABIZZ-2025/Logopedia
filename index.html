@@ -4,315 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apprendi Parole Divertendoti!</title>
-    <!-- Importa Tesseract.js da CDN -->
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
-    <style>
-        :root {
-            --primary-color: #29b6f6; /* Azzurro cielo */
-            --secondary-color: #ffca28; /* Giallo sole */
-            --tertiary-color: #ff7043; /* Arancione carota */
-            --success-color: #66bb6a; /* Verde prato */
-            --error-color: #ef5350; /* Rosso fragola */
-            --text-color: #424242; /* Grigio scuro */
-            --bg-light: #f0f4f8; /* Azzurrino chiarissimo */
-            --bg-white: #ffffff;
-            --font-fun: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive, sans-serif;
-        }
-
-        body {
-            font-family: var(--font-fun);
-            margin: 0;
-            background-color: var(--bg-light);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding-bottom: 30px;
-            box-sizing: border-box;
-        }
-
-        header {
-            background-color: var(--primary-color);
-            color: var(--bg-white);
-            width: 100%;
-            padding: 15px 0;
-            text-align: center;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            border-bottom: 5px solid var(--secondary-color);
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: clamp(1.8em, 5vw, 2.5em); /* Responsive font size */
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        }
-
-        nav {
-            margin-bottom: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        nav button {
-            padding: 12px 25px;
-            font-size: clamp(1em, 3vw, 1.2em);
-            cursor: pointer;
-            border: none;
-            border-radius: 25px; /* Pulsanti più arrotondati */
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-            font-family: var(--font-fun);
-            transition: transform 0.2s ease-out, background-color 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        nav button:hover, nav button.active {
-            background-color: #fbc02d; /* Giallo più scuro per hover */
-            transform: translateY(-3px) scale(1.03);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        nav button.active {
-             background-color: var(--tertiary-color);
-             color: white;
-        }
-
-
-        .module {
-            display: none;
-            background-color: var(--bg-white);
-            padding: clamp(15px, 4vw, 30px);
-            border-radius: 20px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-            width: 90%;
-            max-width: 750px;
-            text-align: center;
-            border-top: 8px solid var(--primary-color);
-        }
-
-        .module.active {
-            display: block;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .module h2 {
-            color: var(--tertiary-color);
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: clamp(1.5em, 4vw, 2em);
-        }
-
-        .controls-group, .input-group, .feedback-area {
-            margin-bottom: 25px;
-            padding: 15px;
-            border: 2px dashed var(--secondary-color);
-            border-radius: 15px;
-            background-color: #fffbf1; /* Sfondo leggermente diverso per i gruppi */
-        }
-        
-        .input-group p { margin-top: 0;}
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        select, input[type="text"], input[type="range"] {
-            padding: 10px 15px;
-            font-size: 1em;
-            border-radius: 10px;
-            border: 2px solid #ccc;
-            margin: 5px 0;
-            font-family: var(--font-fun);
-            width: calc(100% - 34px); /* Considera padding e border */
-            max-width: 300px;
-            box-sizing: border-box;
-        }
-        input[type="range"] { width: 80%; }
-
-
-        button.action-btn, .module button:not(nav button) {
-            padding: 10px 20px;
-            font-size: 1em;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin: 5px;
-            transition: background-color 0.2s, transform 0.1s;
-            font-family: var(--font-fun);
-        }
-        button.action-btn:hover, .module button:not(nav button):hover {
-            background-color: #0288d1; /* Blu più scuro */
-            transform: scale(1.02);
-        }
-        button:disabled {
-            background-color: #e0e0e0 !important;
-            color: #9e9e9e !important;
-            cursor: not-allowed !important;
-            transform: none !important;
-        }
-
-        #letterBoxesContainer {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            padding: 10px 0;
-            min-height: 110px;
-        }
-
-        .letter-box-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .letter-box-number {
-            font-size: 0.75em;
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .letter-canvas {
-            border: 3px solid var(--tertiary-color);
-            background-color: #fff8e1;
-            cursor: crosshair;
-            touch-action: none;
-            border-radius: 8px;
-            display: block;
-        }
-
-        .letter-canvas.active-letter-box {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 10px rgba(41, 182, 246, 0.5);
-        }
-
-        .letter-canvas.correct-box {
-            border-color: var(--success-color) !important;
-            background-color: #e8f5e9 !important;
-        }
-
-        .letter-canvas.incorrect-box {
-            border-color: var(--error-color) !important;
-            background-color: #ffebee !important;
-        }
-
-        .letter-clear-btn {
-            padding: 2px 6px;
-            font-size: 0.7em;
-            background-color: #ef9a9a;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            color: white;
-            font-family: var(--font-fun);
-        }
-
-        .letter-clear-btn:hover {
-            background-color: var(--error-color);
-        }
-
-        .feedback-container { /* Contenitore per feedback per layout */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            min-height: 40px; /* Spazio per messaggio */
-        }
-        .feedback-text {
-            font-size: clamp(1.2em, 3.5vw, 1.6em);
-            font-weight: bold;
-        }
-
-        .correct-feedback { color: var(--success-color); }
-        .incorrect-feedback { color: var(--error-color); }
-
-        /* Input con sfondo colorato per feedback */
-        input[type="text"].correct { background-color: #e8f5e9 !important; border-color: var(--success-color) !important; }
-        input[type="text"].incorrect { background-color: #ffebee !important; border-color: var(--error-color) !important; }
-        
-        #textToPronounce {
-            font-size: clamp(1.8em, 6vw, 3em);
-            padding: 20px;
-            border: 3px solid var(--primary-color);
-            border-radius: 15px;
-            min-height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #e3f2fd; /* Azzurro molto chiaro */
-            margin-bottom: 20px;
-            word-break: break-all;
-        }
-         #textToPronounce.correct { background-color: #e8f5e9 !important; border-color: var(--success-color) !important; }
-         #textToPronounce.incorrect { background-color: #ffebee !important; border-color: var(--error-color) !important; }
-
-        #recognizedPronunciation {
-            font-size: clamp(1.2em, 4vw, 1.8em);
-            padding: 10px;
-            margin-top: 10px;
-            border: 2px dashed #ccc;
-            border-radius: 10px;
-            min-height: 40px;
-            background-color: #fafafa;
-        }
-        #compHandwritingStatus, #pronStatus {
-            font-style: italic;
-            color: #757575;
-            min-height: 20px;
-            margin-top: 10px;
-        }
-
-        /* Fireworks Animation */
-        .fireworks-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 9999;
-        }
-        .particle {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            opacity: 0;
-            animation: explode 0.8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
-        }
-        @keyframes explode {
-            0% { transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.3); opacity: 1; }
-            100% { transform: translate(var(--tx-end, 0), var(--ty-end, 0)) scale(1.8); opacity: 0; }
-        }
-
-        /* Stili per i font modulo pronuncia */
-        .font-stampatello-maiuscolo { text-transform: uppercase; font-family: Arial, Helvetica, sans-serif; letter-spacing: 1px; }
-        .font-stampatello-minuscolo { text-transform: lowercase; font-family: Arial, Helvetica, sans-serif; }
-        .font-corsivo-maiuscolo { text-transform: uppercase; font-family: var(--font-fun); font-style: italic; }
-        .font-corsivo-minuscolo { text-transform: lowercase; font-family: var(--font-fun); font-style: italic; }
-
-        /* Responsive caselle lettera */
-        @media (max-width: 600px) {
-            .letter-canvas { width: 60px !important; height: 70px !important; }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
+
+    <!-- Modal compatibilità e privacy -->
+    <div id="compatModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Benvenuto! 👋</h3>
+            <p>Ecco cosa funziona sul tuo browser:</p>
+            <ul id="compatList"></ul>
+            <p class="privacy-note">🔒 <strong>Privacy:</strong> Il microfono è attivo <em>solo</em> durante la registrazione. I tuoi dati audio non vengono mai inviati a server esterni: tutto rimane nel tuo browser.</p>
+            <button id="compatCloseBtn" class="action-btn">Inizia a giocare! 🚀</button>
+        </div>
+    </div>
+
     <header>
         <h1>Apprendi Parole Divertendoti!</h1>
     </header>
@@ -320,12 +27,16 @@
     <nav>
         <button data-module="comprensione">👂 Ascolta e Scrivi ✍️</button>
         <button data-module="pronuncia">📖 Leggi e Parla 🗣️</button>
+        <button data-module="ripeti">🔁 Ripeti dopo di me!</button>
         <button data-module="impostazioni">⚙️ Impostazioni</button>
     </nav>
 
     <!-- Modulo Comprensione -->
     <div id="comprensione" class="module">
         <h2>Ascolta e Scrivi!</h2>
+        <div class="session-stats">
+            ✅ Corrette: <span id="compCorrect">0</span> &nbsp;|&nbsp; ❌ Sbagliate: <span id="compWrong">0</span>
+        </div>
         <div class="controls-group">
             <label for="compThemeSelect">Scegli il tema:</label>
             <select id="compThemeSelect"></select>
@@ -339,7 +50,7 @@
             <button id="compNewWordBtn" class="action-btn">Nuova Parola 🎲</button>
             <button id="compRepeatWordBtn" class="action-btn">Ascolta Ancora 🔁</button>
         </div>
-        
+
         <div class="input-group">
             <label for="compKeyboardInput">Scrivi qui con la tastiera:</label>
             <input type="text" id="compKeyboardInput" placeholder="Scrivi la parola...">
@@ -361,15 +72,18 @@
     <!-- Modulo Pronuncia -->
     <div id="pronuncia" class="module">
         <h2>Leggi e Parla!</h2>
+        <div class="session-stats">
+            ✅ Corrette: <span id="pronCorrect">0</span> &nbsp;|&nbsp; ❌ Sbagliate: <span id="pronWrong">0</span>
+        </div>
         <div class="controls-group">
             <label for="pronThemeSelect">Scegli il tema:</label>
             <select id="pronThemeSelect"></select>
             <label for="pronSyllableSelect">Scegli la lunghezza della parola:</label>
             <select id="pronSyllableSelect">
-                 <option value="2">2 Sillabe</option>
-                 <option value="3">3 Sillabe</option>
-                 <option value="4">4 Sillabe</option>
-                 <option value="5">5+ Sillabe</option>
+                <option value="2">2 Sillabe</option>
+                <option value="3">3 Sillabe</option>
+                <option value="4">4 Sillabe</option>
+                <option value="5">5+ Sillabe</option>
             </select>
             <label for="pronFontSelect">Scegli come deve essere scritta la parola:</label>
             <select id="pronFontSelect">
@@ -381,13 +95,13 @@
             <button id="pronNewWordBtn" class="action-btn">Nuova Parola da Leggere 🎲</button>
         </div>
         <div id="textToPronounce">Premi "Nuova Parola da Leggere"</div>
-        
+
         <div class="input-group">
             <button id="pronRecordBtn" class="action-btn">Premi e Parla 🎤</button>
             <p style="font-size: 0.9em; color: #666;">(La prima volta, il browser chiederà il permesso per il microfono)</p>
             <button id="pronPlayUserRecordingBtn" disabled>Ascolta la tua Registrazione 🎧</button>
             <button id="pronClearUserRecordingBtn" disabled>Cancella Registrazione 🗑️</button>
-            
+
             <p>Parola che hai detto:</p>
             <div id="recognizedPronunciation">- - -</div>
             <div id="pronFeedback" class="feedback-container"></div>
@@ -395,11 +109,46 @@
         </div>
     </div>
 
+    <!-- Modulo Ripeti dopo di me -->
+    <div id="ripeti" class="module">
+        <h2>Ripeti dopo di me! 🔁</h2>
+        <div class="session-stats">
+            ✅ Corrette: <span id="ripetiCorrect">0</span> &nbsp;|&nbsp; ❌ Sbagliate: <span id="ripetiWrong">0</span>
+        </div>
+        <p style="color:#757575; font-size:0.95em; margin-top:0;">Ascolta la parola e ripetila ad alta voce — senza leggerla!</p>
+        <div class="controls-group">
+            <label for="ripetiThemeSelect">Scegli il tema:</label>
+            <select id="ripetiThemeSelect"></select>
+            <label for="ripetiSyllableSelect">Scegli la lunghezza:</label>
+            <select id="ripetiSyllableSelect">
+                <option value="2">2 Sillabe</option>
+                <option value="3">3 Sillabe</option>
+                <option value="4">4 Sillabe</option>
+                <option value="5">5+ Sillabe</option>
+            </select>
+            <button id="ripetiNewWordBtn" class="action-btn">Nuova Parola 🎲</button>
+        </div>
+        <div class="ripeti-word-box">
+            <div id="ripetiHiddenWord" class="ripeti-hidden">Premi "Nuova Parola" per iniziare!</div>
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:12px;">
+                <button id="ripetiListenBtn" class="action-btn" disabled>Ascolta di Nuovo 🔊</button>
+                <button id="ripetiRevealBtn" class="action-btn" disabled>Rivela Parola 👁️</button>
+            </div>
+        </div>
+        <div class="input-group">
+            <button id="ripetiRecordBtn" class="action-btn" disabled>Ripeti! 🎤</button>
+            <p>Hai detto:</p>
+            <div id="ripetiRecognized">- - -</div>
+            <div id="ripetiFeedback" class="feedback-container"></div>
+            <div id="ripetiStatus"></div>
+        </div>
+    </div>
+
     <!-- Modulo Impostazioni -->
     <div id="impostazioni" class="module">
         <h2>Regola le Impostazioni</h2>
         <div class="controls-group">
-            <label for="speechRateRange">Velocità della voce del gioco (lenta 🐌 <-> veloce 🐆):</label>
+            <label for="speechRateRange">Velocità della voce del gioco (lenta 🐌 &lt;-&gt; veloce 🐆):</label>
             <input type="range" id="speechRateRange" min="0.3" max="1.8" step="0.1" value="1">
             <span id="speechRateValue">1.0</span>
         </div>
@@ -415,794 +164,6 @@
 
     <div class="fireworks-container" id="fireworksContainer"></div>
 
-    <script>
-        // --- DATABASE PAROLE ---
-        // Database organizzato per TEMA → NUMERO DI SILLABE
-        // Parole semplici e comuni, adatte a bambini in età scolastica
-        const wordDatabase = {
-            tema_labels: {
-                tutti:    "🌈 Tutti i temi",
-                animali:  "🐾 Animali",
-                cibo:     "🍎 Cibo",
-                casa:     "🏠 Casa",
-                corpo:    "🧍 Corpo",
-                natura:   "🌿 Natura",
-                scuola:   "📚 Scuola",
-                vestiti:  "👕 Vestiti",
-                veicoli:  "🚗 Veicoli",
-                giochi:   "⚽ Giochi",
-                famiglia: "👨‍👩‍👧 Famiglia"
-            },
-            animali: {
-                2: ["cane","gatto","rana","orso","lupo","volpe","capra","topo","oca",
-                    "cervo","tigre","toro","pollo","gufo","falco","corvo","mucca","zebra",
-                    "merlo","cigno","riccio","lepre","mosca","trota","porco"],
-                3: ["cavallo","coniglio","delfino","farfalla","aquila","pecora","cicala",
-                    "asino","leone","pavone","formica","cicogna","gallina","lucciola",
-                    "castoro","serpente","pinguino","criceto","medusa"],
-                4: ["elefante","tartaruga","coccodrillo","lucertola","coccinella",
-                    "scoiattolo","calamaro","tarantola","pappagallo","pipistrello",
-                    "salamandra","scarafaggio","canarino"],
-                5: ["rinoceronte","ippopotamo","camaleonte","orangotango","coleottero",
-                    "pterodattilo"]
-            },
-            cibo: {
-                2: ["pane","latte","mela","torta","pasta","pizza","riso","pero","fico",
-                    "sale","miele","burro","olio","carne","pesce","zuppa","noce","mango",
-                    "succo","uova"],
-                3: ["banana","fragola","limone","arancia","gelato","biscotto","formaggio",
-                    "patata","carota","zucchero","castagna","lampone","piadina","minestra",
-                    "ciambella","focaccia","pistacchio","fagioli","spinaci","ciliegia"],
-                4: ["pomodoro","mandarino","melanzana","cioccolato","mozzarella",
-                    "tortellini","parmigiano","cavolfiore","maionese","carbonara",
-                    "cotoletta","cannelloni","tagliatelle"],
-                5: ["cioccolatino","peperoncino","pomodorino"]
-            },
-            casa: {
-                2: ["porta","letto","sedia","tetto","muro","vaso","bagno","scala",
-                    "chiave","stanza","forno","frigo","specchio","presa","piano",
-                    "tenda","stufa","secchio","panca"],
-                3: ["tavolo","cucina","coperta","divano","finestra","armadio","poltrona",
-                    "terrazzo","balcone","cantina","giardino","tappeto","mensola",
-                    "cassetto","bollitore","cucchiaio"],
-                4: ["comodino","lavandino","lampadina","lavatrice","candelabro",
-                    "cassapanca","materasso","battistero"],
-                5: ["frigorifero","lavastoviglie","televisore","calorifero","portafinestra"]
-            },
-            corpo: {
-                2: ["mano","piede","naso","bocca","dito","testa","collo","spalla",
-                    "braccio","schiena","guancia","mento","gamba","occhio"],
-                3: ["capelli","caviglia","costola","stomaco","polpaccio","palpebra",
-                    "ascella","gomito","orecchio","ginocchio","polmone","intestino"],
-                4: ["ginocchiera","polpastrello","sopracciglio","mandibola"],
-                5: ["appendicite","circolazione","respirazione"]
-            },
-            natura: {
-                2: ["sole","luna","mare","lago","monte","bosco","fiume","neve",
-                    "vento","fiore","erba","nube","rocca","sabbia","foglia","pioggia",
-                    "cielo","ghiaccio"],
-                3: ["collina","foresta","montagna","vulcano","deserto","tempesta",
-                    "cascata","stagione","pianura","savana","tifone"],
-                4: ["primavera","atmosfera","orizzonte","crepuscolo","temporale",
-                    "piantagione","prateria"],
-                5: ["arcobaleno","biodiversita","inquinamento"]
-            },
-            scuola: {
-                2: ["penna","libro","banco","carta","gomma","riga","classe","gesso",
-                    "zaino","colla","metro","squadra"],
-                3: ["matita","quaderno","maestra","lavagna","compito","disegno",
-                    "racconto","cartella","righello","compasso","diagramma","tombola"],
-                4: ["grammatica","insegnante","biblioteca","dizionario","lavagnetta",
-                    "triangolo","ricreazione"],
-                5: ["matematica","geometria","calcolatrice","laboratorio","enciclopedia",
-                    "informatica"]
-            },
-            vestiti: {
-                2: ["gonna","scarpa","borsa","guanto","calza","maglia","tuta","sciarpa",
-                    "fascia","polo","felpa","giacca","collant"],
-                3: ["cappello","stivale","sandalo","maglione","cappotto","pigiama",
-                    "camicia","cravatta","borsetta","cintura","giubbotto","bretelle"],
-                4: ["pantalone","calzamaglia","canottiera","sottoveste","cappellino"],
-                5: ["abbigliamento","impermeabile"]
-            },
-            veicoli: {
-                2: ["auto","bici","treno","barca","moto","tram","nave","taxi"],
-                3: ["autobus","camion","trattore","veliero","traghetto","furgone",
-                    "rimorchio"],
-                4: ["astronave","aereo","motociclo","vaporetto","fuoristrada"],
-                5: ["motocicletta","locomotiva","sottomarino","portaerei","elicottero"]
-            },
-            giochi: {
-                2: ["palla","dado","carte","corsa","salto","gioco","dama","gara",
-                    "calcio","judo"],
-                3: ["pallone","bambola","scivolo","chitarra","disegno","pittura",
-                    "teatro","domino","tombola"],
-                4: ["costruzioni","carnevale","pallanuoto","bicicletta","altalena",
-                    "filastrocca","aquilone","pallavolo","campionato","girotondo",
-                    "ginnastica"],
-                5: ["videogioco","acrobatica","pallacanestro"]
-            },
-            famiglia: {
-                2: ["mamma","papà","nonno","nonna","figlio","figlia","zio","zia","babbo"],
-                3: ["fratello","sorella","bisnonno","padrino","madrina","famiglia",
-                    "cognato","cognata","parente","gemelli","nipote","cugino","cugina"],
-                4: ["pronipote","matrimonio","genitore","parentela","adozione",
-                    "discendente","battesimo"],
-                5: ["capofamiglia","anniversario","celebrazione","generazione"]
-            }
-        };
-
-
-        // --- VARIABILI GLOBALI ---
-        let currentCompWord = '';
-        let currentPronWord = '';
-        let speechRate = 1;
-        let selectedSpeechSynthesisVoice = null;
-        let tesseractScheduler = null;
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let recordedAudioURL = null;
-
-        // Elementi DOM
-        const modules = document.querySelectorAll('.module');
-        const navButtons = document.querySelectorAll('nav button');
-
-        // Comprensione
-        const compThemeSelect = document.getElementById('compThemeSelect');
-        const compSyllableSelect = document.getElementById('compSyllableSelect');
-        const compNewWordBtn = document.getElementById('compNewWordBtn');
-        const compRepeatWordBtn = document.getElementById('compRepeatWordBtn');
-        const compKeyboardInput = document.getElementById('compKeyboardInput');
-        const compCheckKeyboardBtn = document.getElementById('compCheckKeyboardBtn');
-        const compKeyboardFeedback = document.getElementById('compKeyboardFeedback');
-        const letterBoxesContainer = document.getElementById('letterBoxesContainer');
-        const compCheckHandwritingBtn = document.getElementById('compCheckHandwritingBtn');
-        const compClearCanvasBtn = document.getElementById('compClearCanvasBtn');
-        const compHandwritingFeedback = document.getElementById('compHandwritingFeedback');
-        const compHandwritingStatus = document.getElementById('compHandwritingStatus');
-
-        // Pronuncia
-        const pronThemeSelect = document.getElementById('pronThemeSelect');
-        const pronSyllableSelect = document.getElementById('pronSyllableSelect');
-        const pronFontSelect = document.getElementById('pronFontSelect');
-        const pronNewWordBtn = document.getElementById('pronNewWordBtn');
-        const textToPronounceElem = document.getElementById('textToPronounce');
-        const pronRecordBtn = document.getElementById('pronRecordBtn');
-        const recognizedPronunciationElem = document.getElementById('recognizedPronunciation');
-        const pronFeedback = document.getElementById('pronFeedback');
-        const pronStatus = document.getElementById('pronStatus');
-        const pronPlayUserRecordingBtn = document.getElementById('pronPlayUserRecordingBtn');
-        const pronClearUserRecordingBtn = document.getElementById('pronClearUserRecordingBtn');
-
-        // Impostazioni
-        const speechRateRange = document.getElementById('speechRateRange');
-        const speechRateValue = document.getElementById('speechRateValue');
-        const voiceSelect = document.getElementById('voiceSelect');
-        
-        const fireworksContainer = document.getElementById('fireworksContainer');
-
-        // --- INIZIALIZZAZIONE TESSERACT SCHEDULER ---
-        async function initializeTesseract() {
-            try {
-                compHandwritingStatus.textContent = `Caricamento Tesseract...`;
-                tesseractScheduler = Tesseract.createScheduler();
-                if (!tesseractScheduler) {
-                    console.error("Creazione Tesseract Scheduler fallita.");
-                    compHandwritingStatus.textContent = "Errore Tesseract Scheduler.";
-                    return;
-                }
-                const worker = await Tesseract.createWorker('ita', 1, {
-                    logger: m => { 
-                        if (m.status === 'loading language model' || m.status === 'initializing tesseract') {
-                             compHandwritingStatus.textContent = `Tesseract: ${m.status} ${Math.round(m.progress * 100)}%`;
-                        } else if (m.status === 'recognizing text') {
-                             compHandwritingStatus.textContent = `Riconoscimento: ${Math.round(m.progress * 100)}%`;
-                        }
-                    },
-                });
-                 if (!worker) {
-                    console.error("Creazione Tesseract Worker fallita.");
-                    compHandwritingStatus.textContent = "Errore Tesseract Worker.";
-                    tesseractScheduler.terminate();
-                    tesseractScheduler = null;
-                    return;
-                }
-                // PSM 10 = singolo carattere; whitelist lettere maiuscole italiane
-                await worker.setParameters({
-                    tessedit_pageseg_mode: '10',
-                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-                });
-                await tesseractScheduler.addWorker(worker);
-                compHandwritingStatus.textContent = 'Pronto per disegnare!';
-            } catch (error) {
-                console.error("Errore inizializzazione Tesseract:", error);
-                compHandwritingStatus.textContent = "Errore caricamento Tesseract. Ricarica.";
-                if (tesseractScheduler) {
-                    tesseractScheduler.terminate();
-                    tesseractScheduler = null;
-                }
-            }
-        }
-        initializeTesseract();
-
-        // Popola i dropdown dei temi in entrambi i moduli
-        function populateThemeSelects() {
-            const labels = wordDatabase.tema_labels;
-            [compThemeSelect, pronThemeSelect].forEach(sel => {
-                sel.innerHTML = '';
-                Object.entries(labels).forEach(([value, text]) => {
-                    const opt = document.createElement('option');
-                    opt.value = value;
-                    opt.textContent = text;
-                    sel.appendChild(opt);
-                });
-            });
-        }
-        populateThemeSelects();
-
-
-        // --- FUNZIONI HELPER ---
-        function getRandomWord(syllables, tema) {
-            const temi = Object.keys(wordDatabase).filter(k => k !== 'tema_labels');
-            let wordList;
-            if (!tema || tema === 'tutti') {
-                wordList = temi.flatMap(t => (wordDatabase[t][syllables] || []));
-            } else {
-                wordList = (wordDatabase[tema] && wordDatabase[tema][syllables]) || [];
-                if (wordList.length === 0) {
-                    // Fallback su tutti i temi se quello scelto non ha parole per questa lunghezza
-                    wordList = temi.flatMap(t => (wordDatabase[t][syllables] || []));
-                }
-            }
-            if (!wordList || wordList.length === 0) {
-                console.error(`Nessuna parola per: tema=${tema}, sillabe=${syllables}`);
-                return null;
-            }
-            return wordList[Math.floor(Math.random() * wordList.length)];
-        }
-
-        function speakWord(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); 
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'it-IT';
-                utterance.rate = speechRate;
-                if (selectedSpeechSynthesisVoice) {
-                    utterance.voice = selectedSpeechSynthesisVoice;
-                }
-                window.speechSynthesis.speak(utterance);
-            } else {
-                alert("Il tuo browser non supporta la sintesi vocale integrata.");
-            }
-        }
-        
-        function normalizeText(text) {
-            if (typeof text !== 'string') return '';
-            return text.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
-        }
-
-        function levenshtein(a, b) {
-            const m = a.length, n = b.length;
-            const dp = Array.from({length: m + 1}, (_, i) =>
-                Array.from({length: n + 1}, (_, j) => i === 0 ? j : j === 0 ? i : 0)
-            );
-            for (let i = 1; i <= m; i++)
-                for (let j = 1; j <= n; j++)
-                    dp[i][j] = a[i-1] === b[j-1]
-                        ? dp[i-1][j-1]
-                        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-            return dp[m][n];
-        }
-
-        // Tolleranza: 1 errore per parole ≤4 lettere, 2 per ≤7, 3 per le più lunghe
-        function isAnswerAccepted(user, correct) {
-            if (user === correct) return true;
-            const maxLen = Math.max(user.length, correct.length);
-            const tolerance = maxLen <= 4 ? 1 : maxLen <= 7 ? 2 : 3;
-            return levenshtein(user, correct) <= tolerance;
-        }
-
-        function displayFeedback(feedbackElement, inputElementOrCanvas, isCorrect, messageText) {
-            feedbackElement.innerHTML = '';
-            const textSpan = document.createElement('span');
-            textSpan.textContent = messageText;
-            textSpan.classList.add('feedback-text');
-
-            const originalBgColor = inputElementOrCanvas ? (inputElementOrCanvas.id === 'textToPronounce' ? '#e3f2fd' : 'var(--bg-white)') : null;
-            
-            if (isCorrect) {
-                textSpan.classList.add('correct-feedback');
-                if (inputElementOrCanvas) {
-                    inputElementOrCanvas.classList.remove('incorrect');
-                    inputElementOrCanvas.classList.add('correct');
-                }
-                triggerFireworks();
-            } else {
-                textSpan.classList.add('incorrect-feedback');
-                if (inputElementOrCanvas) {
-                    inputElementOrCanvas.classList.remove('correct');
-                    inputElementOrCanvas.classList.add('incorrect');
-                }
-            }
-            feedbackElement.appendChild(textSpan);
-
-            if (inputElementOrCanvas) {
-                setTimeout(() => {
-                    inputElementOrCanvas.classList.remove('correct', 'incorrect');
-                     if (originalBgColor) inputElementOrCanvas.style.backgroundColor = originalBgColor;
-                }, 2500);
-            }
-        }
-        
-        // --- LOGICA NAVIGAZIONE MODULI ---
-        navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetModuleId = button.dataset.module;
-                modules.forEach(module => module.classList.toggle('active', module.id === targetModuleId));
-                navButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                
-                if (targetModuleId === 'comprensione') initComprensioneModule();
-                else if (targetModuleId === 'pronuncia') initPronunciaModule();
-            });
-        });
-
-        // --- MODULO COMPRENSIONE ---
-        let letterCanvases = [];
-        let letterContexts = [];
-        let activeLetterIndex = 0;
-        let letterIsDrawing = false;
-        let letterLastX = 0;
-        let letterLastY = 0;
-
-        function initComprensioneModule() {
-            compKeyboardInput.value = '';
-            compKeyboardFeedback.innerHTML = '';
-            compHandwritingFeedback.innerHTML = '';
-            compKeyboardInput.className = '';
-            if (tesseractScheduler) compHandwritingStatus.textContent = 'Pronto per disegnare!';
-            else compHandwritingStatus.textContent = 'Inizializzazione Tesseract... attendere.';
-            generateNewCompWord();
-        }
-        
-        function generateNewCompWord() {
-            currentCompWord = getRandomWord(compSyllableSelect.value, compThemeSelect.value);
-            if (!currentCompWord) return;
-            speakWord(currentCompWord);
-            compKeyboardInput.value = '';
-            compKeyboardInput.className = '';
-            compKeyboardFeedback.innerHTML = '';
-            compHandwritingFeedback.innerHTML = '';
-            initializeLetterBoxes(currentCompWord);
-            if (tesseractScheduler) compHandwritingStatus.textContent = 'Disegna ogni lettera nella sua casella!';
-        }
-
-        compNewWordBtn.addEventListener('click', generateNewCompWord);
-        compRepeatWordBtn.addEventListener('click', () => {
-            if (currentCompWord) speakWord(currentCompWord);
-            else compHandwritingStatus.textContent = "Nessuna parola da ripetere.";
-        });
-
-        compCheckKeyboardBtn.addEventListener('click', () => {
-            if (!currentCompWord) { 
-                compKeyboardFeedback.innerHTML = '<span class="feedback-text incorrect-feedback">Genera prima una parola!</span>'; 
-                return; 
-            }
-            const userAnswer = normalizeText(compKeyboardInput.value);
-            const correctAnswer = normalizeText(currentCompWord);
-            const isCorrect = isAnswerAccepted(userAnswer, correctAnswer);
-            displayFeedback(compKeyboardFeedback, compKeyboardInput, isCorrect, isCorrect ? "BRAVISSIMO!!! 🎉" : "NON TI PREOCCUPARE, RIPROVA 💪");
-        });
-        
-        function getCanvasPos(canvasDom, event) {
-            const rect = canvasDom.getBoundingClientRect();
-            const scaleX = canvasDom.width / rect.width;
-            const scaleY = canvasDom.height / rect.height;
-            const clientX = event.touches ? event.touches[0].clientX : event.clientX;
-            const clientY = event.touches ? event.touches[0].clientY : event.clientY;
-            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-        }
-
-        function initializeLetterBoxes(word) {
-            letterBoxesContainer.innerHTML = '';
-            letterCanvases = [];
-            letterContexts = [];
-            activeLetterIndex = 0;
-            compHandwritingFeedback.innerHTML = '';
-
-            const letters = normalizeText(word).split('');
-            letters.forEach((letter, index) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'letter-box-wrapper';
-
-                const numLabel = document.createElement('span');
-                numLabel.className = 'letter-box-number';
-                numLabel.textContent = index + 1;
-
-                const canvas = document.createElement('canvas');
-                canvas.width = 80;
-                canvas.height = 90;
-                canvas.className = 'letter-canvas';
-                canvas.dataset.index = index;
-
-                const lctx = canvas.getContext('2d');
-                lctx.fillStyle = '#fff8e1';
-                lctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                canvas.addEventListener('mousedown', (e) => startLetterDrawing(e, index));
-                canvas.addEventListener('mousemove', (e) => drawLetter(e, index));
-                canvas.addEventListener('mouseup', stopLetterDrawing);
-                canvas.addEventListener('mouseout', stopLetterDrawing);
-                canvas.addEventListener('touchstart', (e) => startLetterDrawing(e, index), { passive: false });
-                canvas.addEventListener('touchmove', (e) => drawLetter(e, index), { passive: false });
-                canvas.addEventListener('touchend', stopLetterDrawing);
-
-                const clearBtn = document.createElement('button');
-                clearBtn.textContent = '✕';
-                clearBtn.className = 'letter-clear-btn';
-                clearBtn.title = 'Cancella questa casella';
-                clearBtn.addEventListener('click', (e) => { e.stopPropagation(); clearLetterBox(index); });
-
-                wrapper.appendChild(numLabel);
-                wrapper.appendChild(canvas);
-                wrapper.appendChild(clearBtn);
-                letterBoxesContainer.appendChild(wrapper);
-
-                letterCanvases.push(canvas);
-                letterContexts.push(lctx);
-            });
-
-            if (letterCanvases.length > 0) setActiveLetterBox(0);
-        }
-
-        function setActiveLetterBox(index) {
-            activeLetterIndex = index;
-            letterCanvases.forEach((c, i) => c.classList.toggle('active-letter-box', i === index));
-        }
-
-        function startLetterDrawing(e, index) {
-            e.preventDefault();
-            setActiveLetterBox(index);
-            letterIsDrawing = true;
-            const pos = getCanvasPos(letterCanvases[index], e);
-            letterLastX = pos.x;
-            letterLastY = pos.y;
-        }
-
-        function drawLetter(e, index) {
-            e.preventDefault();
-            if (!letterIsDrawing || index !== activeLetterIndex) return;
-            const canvas = letterCanvases[index];
-            const lctx = letterContexts[index];
-            const pos = getCanvasPos(canvas, e);
-            lctx.beginPath();
-            lctx.moveTo(letterLastX, letterLastY);
-            lctx.lineTo(pos.x, pos.y);
-            lctx.strokeStyle = '#333';
-            lctx.lineWidth = 4;
-            lctx.lineCap = 'round';
-            lctx.lineJoin = 'round';
-            lctx.stroke();
-            letterLastX = pos.x;
-            letterLastY = pos.y;
-        }
-
-        function stopLetterDrawing() {
-            letterIsDrawing = false;
-        }
-
-        function clearLetterBox(index) {
-            const canvas = letterCanvases[index];
-            const lctx = letterContexts[index];
-            lctx.clearRect(0, 0, canvas.width, canvas.height);
-            lctx.fillStyle = '#fff8e1';
-            lctx.fillRect(0, 0, canvas.width, canvas.height);
-            canvas.classList.remove('correct-box', 'incorrect-box');
-        }
-
-        function clearAllLetterBoxes() {
-            letterCanvases.forEach((c, i) => clearLetterBox(i));
-            if (letterCanvases.length > 0) setActiveLetterBox(0);
-            compHandwritingFeedback.innerHTML = '';
-            if (tesseractScheduler) compHandwritingStatus.textContent = 'Caselle pulite! Ricomincia a disegnare.';
-        }
-
-        compClearCanvasBtn.addEventListener('click', clearAllLetterBoxes);
-
-        compCheckHandwritingBtn.addEventListener('click', async () => {
-            if (!currentCompWord) { compHandwritingStatus.textContent = 'Prima genera una parola!'; return; }
-            if (!tesseractScheduler) { compHandwritingStatus.textContent = 'Tesseract non è pronto. Attendi o ricarica.'; return; }
-            if (letterCanvases.length === 0) { compHandwritingStatus.textContent = 'Prima genera una parola!'; return; }
-
-            compCheckHandwritingBtn.disabled = true;
-            compClearCanvasBtn.disabled = true;
-
-            const wordLetters = normalizeText(currentCompWord).split('');
-            let allCorrect = true;
-            const recognizedChars = [];
-
-            try {
-                for (let i = 0; i < letterCanvases.length; i++) {
-                    compHandwritingStatus.textContent = `Riconoscimento lettera ${i + 1} di ${letterCanvases.length}... 🧠`;
-                    const { data: { text } } = await tesseractScheduler.addJob('recognize', letterCanvases[i]);
-                    const cleaned = normalizeText(text).replace(/\s/g, '');
-                    const recognized = cleaned[0] || '';
-                    const expected = wordLetters[i];
-                    const isLetterCorrect = recognized === expected;
-
-                    if (!isLetterCorrect) allCorrect = false;
-                    recognizedChars.push(recognized || '?');
-
-                    letterCanvases[i].classList.remove('correct-box', 'incorrect-box');
-                    letterCanvases[i].classList.add(isLetterCorrect ? 'correct-box' : 'incorrect-box');
-                }
-
-                const resultWord = recognizedChars.join('');
-                displayFeedback(
-                    compHandwritingFeedback, null, allCorrect,
-                    allCorrect ? "OTTIMO! HAI SCRITTO TUTTO BENE! 🎉" : "QUASI! LE CASELLE ROSSE VANNO RICONTROLLATE 💪"
-                );
-                compHandwritingStatus.textContent = `Ho letto: "${resultWord}" — Parola corretta: "${wordLetters.join('')}"`;
-            } catch (error) {
-                console.error("Errore Tesseract:", error);
-                compHandwritingStatus.textContent = 'Errore nel riconoscimento. Riprova.';
-                displayFeedback(compHandwritingFeedback, null, false, "ERRORE NEL RICONOSCIMENTO 😵");
-            } finally {
-                compCheckHandwritingBtn.disabled = false;
-                compClearCanvasBtn.disabled = false;
-            }
-        });
-
-        // --- MODULO PRONUNCIA ---
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition;
-        let isAsrRecording = false; // Rinominato per evitare conflitti
-
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'it-IT';
-            recognition.continuous = false;
-            recognition.interimResults = false; 
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = () => {
-                isAsrRecording = true;
-                pronStatus.textContent = 'Sto ascoltando... Parla ora! 📢';
-                pronRecordBtn.textContent = 'Ascoltando...';
-                pronRecordBtn.style.backgroundColor = 'var(--error-color)';
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                recognizedPronunciationElem.textContent = transcript;
-                const userAnswer = normalizeText(transcript);
-                const correctAnswer = normalizeText(currentPronWord);
-                const isCorrect = isAnswerAccepted(userAnswer, correctAnswer);
-                displayFeedback(pronFeedback, textToPronounceElem, isCorrect, isCorrect ? "PRONUNCIA PERFETTA! BRAVISSIMO! 🎉" : "QUASI! RIPROVA A PRONUNCIARE MEGLIO 💪");
-                pronStatus.textContent = `Hai detto: "${transcript}".`;
-            };
-            
-            recognition.onspeechend = () => {
-                recognition.stop(); 
-                pronStatus.textContent = 'Ho sentito! Sto pensando... 🤔';
-            };
-
-            recognition.onend = () => {
-                isAsrRecording = false;
-                pronRecordBtn.textContent = 'Premi e Parla 🎤';
-                pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
-                if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
-                if (recognizedPronunciationElem.textContent === '- - -' && !pronFeedback.textContent.includes("ERRORE")) {
-                    pronStatus.textContent = 'Non ho capito bene. Riprova a parlare!';
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Errore SpeechRecognition:", event.error, event.message);
-                let userMessage = `Ops! Errore: ${event.error}. `;
-                if (event.error === 'no-speech') userMessage += "Non ho sentito nulla. Parla più forte!";
-                else if (event.error === 'audio-capture') userMessage += "Problemi col microfono.";
-                else if (event.error === 'not-allowed') userMessage += "Devi darmi il permesso di usare il microfono! 🙁";
-                else userMessage += "Qualcosa è andato storto.";
-                
-                pronStatus.textContent = userMessage;
-                recognizedPronunciationElem.textContent = '- ERRORE -';
-                displayFeedback(pronFeedback, textToPronounceElem, false, "ERRORE VOCALE 😵");
-                 isAsrRecording = false; // Assicura reset stato
-                pronRecordBtn.textContent = 'Premi e Parla 🎤';
-                pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
-            };
-        } else {
-            pronStatus.textContent = 'Il tuo browser non supporta il riconoscimento vocale.';
-            if(pronRecordBtn) pronRecordBtn.disabled = true;
-        }
-        
-        function initPronunciaModule() {
-            currentPronWord = '';
-            textToPronounceElem.textContent = 'Premi "Nuova Parola da Leggere"';
-            textToPronounceElem.className = '';
-            textToPronounceElem.style.backgroundColor = '#e3f2fd';
-            recognizedPronunciationElem.textContent = '- - -';
-            pronFeedback.innerHTML = '';
-            pronStatus.textContent = SpeechRecognition ? 'Pronto per leggere e parlare!' : 'Riconoscimento vocale non supportato.';
-            // Reset stato registrazione
-            if (recordedAudioURL) { URL.revokeObjectURL(recordedAudioURL); recordedAudioURL = null; }
-            audioChunks = [];
-            pronPlayUserRecordingBtn.disabled = true;
-            pronClearUserRecordingBtn.disabled = true;
-            generateNewPronWord();
-        }
-
-        function generateNewPronWord() {
-            currentPronWord = getRandomWord(pronSyllableSelect.value, pronThemeSelect.value);
-            if (!currentPronWord) return;
-            applyFontToPronWord();
-            recognizedPronunciationElem.textContent = '- - -';
-            pronFeedback.innerHTML = '';
-            textToPronounceElem.style.backgroundColor = '#e3f2fd';
-            pronStatus.textContent = 'Leggi la parola qui sopra e poi premi "Premi e Parla"!';
-        }
-        
-        function applyFontToPronWord() {
-            if (!currentPronWord) return; 
-            textToPronounceElem.textContent = currentPronWord; 
-            textToPronounceElem.className = ''; 
-            textToPronounceElem.classList.add(pronFontSelect.value); 
-        }
-
-        pronNewWordBtn.addEventListener('click', generateNewPronWord);
-        pronFontSelect.addEventListener('change', applyFontToPronWord);
-
-        pronRecordBtn.addEventListener('click', async () => {
-            if (!SpeechRecognition) { pronStatus.textContent = "Riconoscimento vocale non supportato."; return; }
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { pronStatus.textContent = "Registrazione audio non supportata (richiede HTTPS)."; return; }
-            if (!currentPronWord) { pronStatus.textContent = 'Prima genera una parola da leggere!'; return; }
-            if (isAsrRecording) {
-                recognition.stop();
-                if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
-            } else {
-                recognizedPronunciationElem.textContent = '- - -';
-                pronFeedback.innerHTML = '';
-                textToPronounceElem.style.backgroundColor = '#e3f2fd';
-                audioChunks = [];
-                try {
-                    // Richiedi accesso microfono per MediaRecorder
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.ondataavailable = (e) => {
-                        if (e.data.size > 0) audioChunks.push(e.data);
-                    };
-                    mediaRecorder.onstop = () => {
-                        // Rilascia il microfono
-                        stream.getTracks().forEach(t => t.stop());
-                        if (audioChunks.length > 0) {
-                            if (recordedAudioURL) URL.revokeObjectURL(recordedAudioURL);
-                            const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                            recordedAudioURL = URL.createObjectURL(blob);
-                            pronPlayUserRecordingBtn.disabled = false;
-                            pronClearUserRecordingBtn.disabled = false;
-                        }
-                    };
-                    mediaRecorder.start();
-                    recognition.start();
-                } catch (e) {
-                    pronStatus.textContent = "Errore nell'avviare la registrazione. Controlla il microfono.";
-                    console.error("Errore avvio registrazione:", e);
-                    isAsrRecording = false;
-                    pronRecordBtn.textContent = 'Premi e Parla 🎤';
-                    pronRecordBtn.style.backgroundColor = 'var(--primary-color)';
-                }
-            }
-        });
-
-        pronPlayUserRecordingBtn.addEventListener('click', () => {
-            if (!recordedAudioURL) return;
-            const audio = new Audio(recordedAudioURL);
-            pronPlayUserRecordingBtn.disabled = true;
-            pronStatus.textContent = 'Riproduzione in corso... 🎧';
-            audio.play();
-            audio.onended = () => {
-                pronPlayUserRecordingBtn.disabled = false;
-                pronStatus.textContent = '';
-            };
-            audio.onerror = () => {
-                pronPlayUserRecordingBtn.disabled = false;
-                pronStatus.textContent = 'Errore nella riproduzione.';
-            };
-        });
-
-        pronClearUserRecordingBtn.addEventListener('click', () => {
-            if (recordedAudioURL) { URL.revokeObjectURL(recordedAudioURL); recordedAudioURL = null; }
-            audioChunks = [];
-            pronPlayUserRecordingBtn.disabled = true;
-            pronClearUserRecordingBtn.disabled = true;
-            pronStatus.textContent = 'Registrazione cancellata.';
-        });
-
-        // --- MODULO IMPOSTAZIONI ---
-        speechRateRange.addEventListener('input', (e) => {
-            speechRate = parseFloat(e.target.value);
-            speechRateValue.textContent = speechRate.toFixed(1);
-        });
-
-        function populateVoiceList() {
-            if (typeof speechSynthesis === 'undefined') return;
-            
-            const voices = speechSynthesis.getVoices();
-            voiceSelect.innerHTML = ''; 
-            
-            const italianVoices = voices.filter(voice => voice.lang.startsWith('it-IT'));
-            
-            if (italianVoices.length === 0) {
-                const option = document.createElement('option');
-                option.textContent = "Nessuna voce italiana trovata";
-                option.disabled = true;
-                voiceSelect.appendChild(option);
-                return;
-            }
-
-            italianVoices.forEach(voice => {
-                const option = document.createElement('option');
-                option.textContent = `${voice.name} (${voice.lang})`;
-                option.setAttribute('data-lang', voice.lang);
-                option.setAttribute('data-name', voice.name);
-                voiceSelect.appendChild(option);
-            });
-            if (voiceSelect.options.length > 0) {
-                 selectedSpeechSynthesisVoice = speechSynthesis.getVoices().find(v => v.name === voiceSelect.options[0].dataset.name) || italianVoices[0];
-                 voiceSelect.selectedIndex = 0;
-            }
-        }
-        
-        
-        if (typeof speechSynthesis !== 'undefined') {
-            if (speechSynthesis.getVoices().length === 0) {
-                 speechSynthesis.onvoiceschanged = populateVoiceList;
-            } else {
-                populateVoiceList(); // Se le voci sono già disponibili
-            }
-        }
-        
-        voiceSelect.addEventListener('change', () => {
-            const selectedOptionName = voiceSelect.selectedOptions[0].getAttribute('data-name');
-            selectedSpeechSynthesisVoice = speechSynthesis.getVoices().find(voice => voice.name === selectedOptionName) || selectedSpeechSynthesisVoice;
-        });
-
-        // --- ANIMAZIONE FUOCHI D'ARTIFICIO ---
-        function triggerFireworks() {
-            const colors = ['var(--primary-color)', 'var(--secondary-color)', 'var(--tertiary-color)', '#4caf50', '#f44336', '#9c27b0'];
-            for (let i = 0; i < 25; i++) { 
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                
-                const xStart = Math.random() * fireworksContainer.offsetWidth;
-                const yStart = Math.random() * fireworksContainer.offsetHeight;
-                
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 100 + 50; 
-                const txEnd = Math.cos(angle) * distance;
-                const tyEnd = Math.sin(angle) * distance;
-
-                particle.style.setProperty('--tx', '0px');
-                particle.style.setProperty('--tx-end', `${txEnd}px`);
-                particle.style.setProperty('--ty', '0px'); // Imposta ty a 0, non txEnd
-                particle.style.setProperty('--ty-end', `${tyEnd}px`);
-                
-                particle.style.left = `${xStart}px`;
-                particle.style.top = `${yStart}px`;
-                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                
-                fireworksContainer.appendChild(particle);
-                setTimeout(() => particle.remove(), 800); 
-            }
-        }
-
-        // --- INIZIALIZZAZIONE AL CARICAMENTO ---
-        document.addEventListener('DOMContentLoaded', () => {
-            if (navButtons.length > 0) {
-                navButtons[0].click(); 
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
