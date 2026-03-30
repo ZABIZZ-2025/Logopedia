@@ -895,3 +895,56 @@ ripetiRecordBtn.addEventListener('click', () => {
         ripetiRecognition.start();
     }
 });
+
+// ============================================================
+// BLOCCO 10 — MODULO IMPOSTAZIONI
+// ============================================================
+
+speechRateRange.addEventListener('input', e => {
+    speechRate = parseFloat(e.target.value);
+    speechRateValue.textContent = speechRate.toFixed(1);
+});
+
+function populateVoiceList() {
+    if (typeof speechSynthesis === 'undefined') return;
+    const voices = speechSynthesis.getVoices();
+    voiceSelect.innerHTML = '';
+    const italianVoices = voices.filter(v => v.lang.startsWith('it'));
+
+    if (italianVoices.length === 0) {
+        const opt = document.createElement('option');
+        opt.textContent = 'Nessuna voce italiana trovata';
+        opt.disabled = true;
+        voiceSelect.appendChild(opt);
+        return;
+    }
+
+    italianVoices.forEach(voice => {
+        const opt = document.createElement('option');
+        opt.textContent = `${voice.name} (${voice.lang})`;
+        opt.setAttribute('data-name', voice.name);
+        voiceSelect.appendChild(opt);
+    });
+
+    if (voiceSelect.options.length > 0) {
+        selectedSpeechSynthesisVoice =
+            speechSynthesis.getVoices().find(v => v.name === voiceSelect.options[0].dataset.name)
+            || italianVoices[0];
+        voiceSelect.selectedIndex = 0;
+    }
+}
+
+if (typeof speechSynthesis !== 'undefined') {
+    if (speechSynthesis.getVoices().length === 0) {
+        speechSynthesis.onvoiceschanged = populateVoiceList;
+    } else {
+        populateVoiceList();
+    }
+}
+
+voiceSelect.addEventListener('change', () => {
+    const name = voiceSelect.selectedOptions[0]?.getAttribute('data-name');
+    selectedSpeechSynthesisVoice =
+        speechSynthesis.getVoices().find(v => v.name === name)
+        || selectedSpeechSynthesisVoice;
+});
