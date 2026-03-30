@@ -781,3 +781,117 @@ pronClearUserRecordingBtn.addEventListener('click', () => {
     pronClearUserRecordingBtn.disabled = true;
     pronStatus.textContent = 'Registrazione cancellata.';
 });
+
+// ============================================================
+// BLOCCO 9 — MODULO "RIPETI DOPO DI ME"
+// ============================================================
+
+let ripetiIsRecording = false;
+let ripetiRecognition;
+
+if (SpeechRecognition) {
+    ripetiRecognition = new SpeechRecognition();
+    ripetiRecognition.lang = 'it-IT';
+    ripetiRecognition.continuous = false;
+    ripetiRecognition.interimResults = false;
+    ripetiRecognition.maxAlternatives = 1;
+
+    ripetiRecognition.onstart = () => {
+        ripetiIsRecording = true;
+        ripetiStatus.textContent = 'Sto ascoltando... Ripeti! 📢';
+        ripetiRecordBtn.textContent = 'Ascoltando...';
+        ripetiRecordBtn.style.backgroundColor = 'var(--error-color)';
+    };
+
+    ripetiRecognition.onresult = event => {
+        const transcript = event.results[0][0].transcript;
+        ripetiRecognized.textContent = transcript;
+        const isCorrect = isAnswerAccepted(normalizeText(transcript), normalizeText(currentRipetiWord));
+        displayFeedback(ripetiFeedback, null, isCorrect,
+            isCorrect ? 'BRAVO! HAI RIPETUTO BENE! 🎉' : 'QUASI! RIPROVA! 💪');
+        updateStats('ripeti', isCorrect);
+        speakFeedback(isCorrect);
+        // Rivela la parola automaticamente dopo la risposta
+        ripetiHiddenWord.classList.remove('blurred');
+        ripetiRevealBtn.textContent = 'Nascondi Parola 🙈';
+        ripetiStatus.textContent = `Hai detto: "${transcript}"`;
+    };
+
+    ripetiRecognition.onspeechend = () => { ripetiRecognition.stop(); };
+
+    ripetiRecognition.onend = () => {
+        ripetiIsRecording = false;
+        ripetiRecordBtn.textContent = 'Ripeti! 🎤';
+        ripetiRecordBtn.style.backgroundColor = 'var(--primary-color)';
+        if (ripetiRecognized.textContent === '- - -') {
+            ripetiStatus.textContent = 'Non ho sentito nulla. Riprova!';
+        }
+    };
+
+    ripetiRecognition.onerror = event => {
+        ripetiIsRecording = false;
+        ripetiRecordBtn.textContent = 'Ripeti! 🎤';
+        ripetiRecordBtn.style.backgroundColor = 'var(--primary-color)';
+        let msg = `Errore: ${event.error}. `;
+        if      (event.error === 'no-speech')   msg += 'Non ho sentito nulla. Parla più forte!';
+        else if (event.error === 'not-allowed') msg += 'Devi darmi il permesso di usare il microfono!';
+        ripetiStatus.textContent = msg;
+    };
+}
+
+function initRipetiModule() {
+    currentRipetiWord = '';
+    ripetiHiddenWord.textContent = 'Premi "Nuova Parola" per iniziare!';
+    ripetiHiddenWord.classList.remove('blurred');
+    ripetiRecognized.textContent = '- - -';
+    ripetiFeedback.innerHTML = '';
+    ripetiStatus.textContent = SpeechRecognition
+        ? 'Scegli un tema e premi "Nuova Parola"!'
+        : 'Riconoscimento vocale non supportato.';
+    ripetiListenBtn.disabled = true;
+    ripetiRevealBtn.disabled = true;
+    ripetiRecordBtn.disabled = !SpeechRecognition;
+    generateNewRipetiWord();
+}
+
+function generateNewRipetiWord() {
+    currentRipetiWord = getRandomWord(ripetiSyllableSelect.value, ripetiThemeSelect.value);
+    if (!currentRipetiWord) return;
+    ripetiHiddenWord.textContent = currentRipetiWord;
+    ripetiHiddenWord.classList.add('blurred');
+    ripetiRevealBtn.textContent = 'Rivela Parola 👁️';
+    ripetiRecognized.textContent = '- - -';
+    ripetiFeedback.innerHTML = '';
+    ripetiStatus.textContent = 'Ascolta bene, poi premi "Ripeti!"';
+    ripetiListenBtn.disabled = false;
+    ripetiRevealBtn.disabled = false;
+    ripetiRecordBtn.disabled = !SpeechRecognition;
+    speakWord(currentRipetiWord);
+}
+
+ripetiNewWordBtn.addEventListener('click', generateNewRipetiWord);
+
+ripetiListenBtn.addEventListener('click', () => {
+    if (currentRipetiWord) speakWord(currentRipetiWord);
+});
+
+ripetiRevealBtn.addEventListener('click', () => {
+    ripetiHiddenWord.classList.toggle('blurred');
+    ripetiRevealBtn.textContent = ripetiHiddenWord.classList.contains('blurred')
+        ? 'Rivela Parola 👁️'
+        : 'Nascondi Parola 🙈';
+});
+
+ripetiRecordBtn.addEventListener('click', () => {
+    if (!SpeechRecognition) { ripetiStatus.textContent = 'Riconoscimento vocale non supportato.'; return; }
+    if (!currentRipetiWord) { ripetiStatus.textContent = 'Prima genera una parola!'; return; }
+    if (ripetiIsRecording) {
+        ripetiRecognition.stop();
+    } else {
+        ripetiRecognized.textContent = '- - -';
+        ripetiFeedback.innerHTML = '';
+        ripetiHiddenWord.classList.add('blurred');
+        ripetiRevealBtn.textContent = 'Rivela Parola 👁️';
+        ripetiRecognition.start();
+    }
+});
